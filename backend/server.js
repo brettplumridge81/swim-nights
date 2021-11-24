@@ -6,9 +6,6 @@ const mongoose = require('mongoose');
 const fridayNightRacesRoutes = express.Router();
 const PORT = 4000;
 
-/*let Swimmer = require('./swimmer.model');*/
-/*let EventType = require('./eventType.model');*/
-
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -59,6 +56,40 @@ fridayNightRacesRoutes.route('/racenights').get(function (req, res) {
             console.log(err);
         } else {
             res.json(raceNights);
+        }
+    });
+});
+
+fridayNightRacesRoutes.route('/raceevents').get(function (req, res) {
+    let RaceEvent = require('./raceEvent.model');
+    RaceEvent.find(function (err, raceEvent) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.json(raceEvent);
+        }
+    });
+});
+
+fridayNightRacesRoutes.route('/raceevents/:id').get(function (req, res) {
+    let RaceEvent = require('./raceEvent.model');
+    let id = req.params.id;
+    RaceEvent.findById(id, function (err, raceEvent) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.json(raceEvent);
+        }
+    });
+});
+
+fridayNightRacesRoutes.route('/SwimmerEventResult').get(function (req, res) {
+    let SwimmerEventResult = require('./swimmerEventResult.model');
+    SwimmerEventResult.find(function (err, swimmer) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.json(swimmer);
         }
     });
 });
@@ -127,25 +158,90 @@ fridayNightRacesRoutes.route('/racenights/add_racenight').post(function (req, re
         });
 });
 
-/*boreholeRoutes.route('/update/:id').post(function (req, res) {
-    Borehole.findById(req.params.id, function (err, borehole) {
-        if (!borehole)
-            res.status(404).send("data is not found");
-        else
-            borehole.borehole_id = req.body.borehole_id;
-        borehole.borehole_deveui = req.body.borehole_deveui;
-        borehole.borehole_lat = req.body.borehole_lat;
-        borehole.borehole_long = req.body.borehole_long;
-        borehole.borehole_level = req.body.borehole_level;
-
-        borehole.save().then(borehole => {
-            res.json('Borehole updated!');
+fridayNightRacesRoutes.route('/raceevents/add_raceevent').post(function (req, res) {
+    let RaceEvent = require('./raceEvent.model');
+    let raceEvent = new RaceEvent(req.body);
+    console.log(req.body);
+    raceEvent.save()
+        .then(raceEvent => {
+            res.status(200).json({ 'raceEvent': 'raceEvent added successfully' });
         })
-            .catch(err => {
-                res.status(400).send("Update not possible");
-            });
+        .catch(err => {
+            res.status(400).send('adding new raceEvent failed');
+        });
+});
+
+
+fridayNightRacesRoutes.route('/swimmerEventResult/add_selectedswimmer').post(function (req, res) {
+    console.log("Here");
+    let SwimmerEventResult = require('./swimmerEventResult.model');
+    let swimmerEventResult = new SwimmerEventResult(req.body);
+    console.log(req.body);
+    swimmerEventResult.save()
+        .then(swimmerEventResult => {
+            res.status(200).json({ 'swimmerEventResult': 'swimmerEventResult added successfully' });
+        })
+        .catch(err => {
+            res.status(400).send('adding new swimmerEventResult failed');
+        });
+});
+
+
+
+fridayNightRacesRoutes.route('/raceevents/update/:id').post(function (req, res) {
+    let RaceEvent = require('./raceEvent.model');
+    console.log(req.body);
+    RaceEvent.findById(req.params.id, function (err, raceEvent) {
+        if (!raceEvent) {
+            res.status(404).send("data is not found");
+        } else {
+            raceEvent.swimmerIds = req.body[0].swimmerIds;
+            raceEvent.resultIds = req.body[0].resultIds;
+
+            raceEvent.save()
+                .then(raceEvent => {
+                    res.status(200).json({ 'raceEvent': 'raceEvent updated successfully' });
+                })
+                .catch(err => {
+                    res.status(400).send('updating raceEvent failed');
+                });
+        }
+        
     });
-});*/
+});
+
+fridayNightRacesRoutes.route('/swimmerEventResult/update/:id').post(function (req, res) {
+    let SwimmerEventResult = require('./swimmerEventResult.model');
+    console.log(req.body);
+    SwimmerEventResult.findById(req.params.id, function (err, swimmerEventResult) {
+        if (!swimmerEventResult) {
+            res.status(404).send("data is not found");
+        } else {
+            swimmerEventResult.recordedTime = req.body[0].recordedTime;
+            swimmerEventResult.recordedPlace = req.body[0].recordedPlace;
+            swimmerEventResult.points = req.body[0].points;
+
+            swimmerEventResult.save()
+                .then(swimmerEventResult => {
+                    res.status(200).json({ 'swimmerEventResult': 'swimmerEventResult updated successfully' });
+                })
+                .catch(err => {
+                    res.status(400).send('updating swimmerEventResult failed');
+                });
+        }
+        
+    });
+});
+
+
+
+fridayNightRacesRoutes.route('/selectedswimmers/delete/:id').get(function (req, res) {
+    let SelectedSwimmer = require('./selectedSwimmer.model');
+    SelectedSwimmer.findByIdAndRemove({_id: req.params.id}, function(err, SelectedSwimmer){
+        if(err) res.json(err);
+        else res.json('Successfully removed');
+    });
+});
 
 fridayNightRacesRoutes.route('/currentselectedevents/delete/:id').get(function (req, res) {
     let SelectedEvent = require('./selectedEvent.model');
@@ -155,15 +251,7 @@ fridayNightRacesRoutes.route('/currentselectedevents/delete/:id').get(function (
     });
 });
 
-// fridayNightRacesRoutes.delete('/currentselectedevents/delete/:id', async (req, res) => {
-//     try{
-//         await SelectedEvent.findByIdAndDelete(req.body.id);
-//         return res.status(200).json({ success: true, msg: 'SelectedEvent Deleted' });
-//     }
-//     catch(err){
-//         console.error(err);
-//     }
-// });
+
 
 app.use('/fridaynightraces', fridayNightRacesRoutes);
 

@@ -49,6 +49,8 @@ export class AddEventType extends Component {
         }
 
         axios.post('http://localhost:4000/fridaynightraces/events/add_eventtype', newEventType);
+
+        window.location.reload();
     }
 
 

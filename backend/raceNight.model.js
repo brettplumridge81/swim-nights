@@ -2,12 +2,12 @@
 const Schema = mongoose.Schema;
 
 let RaceNight = new Schema({
-    raceNightDate: {
-        type: String
+    date: {
+        type: [Number]
     },
-    raceEvents: [{
-        type: String
-    }]
+    raceEventIds: {
+        type: [String]
+    }
 });
 
 module.exports = mongoose.model('RaceNight', RaceNight);

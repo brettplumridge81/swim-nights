@@ -1,20 +1,21 @@
 ﻿const mongoose = require('mongoose');
-const resultModel = require('./result.model');
-const swimmerModel = require('./swimmer.model');
 const Schema = mongoose.Schema;
 
 let RaceEvent = new Schema({
-    eventId: {
+    raceEventId: {
         type: String
     },
-    name: {
+    eventTypeId: {
         type: String
     },
-    Swimmers: {
-        type: swimmerModel
+    swimmerIds: {
+        type: [String]
     },
-    Results: {
-        type: resultModel
+    resultIds: {
+        type: [String]
+    },
+    date: {
+        type: [Number]
     }
 });
 

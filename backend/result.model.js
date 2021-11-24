@@ -6,10 +6,10 @@ let Result = new Schema({
         type: String
     },
     time: {
-        type: double
+        type: Number
     },
     place: {
-        type: int
+        type: Number
     }
 });
 

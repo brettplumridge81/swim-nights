@@ -9,6 +9,9 @@ const RaceEvent = props => (
     <td>
       <button onClick={() => { handleDelete(props.raceEvent._id); }}>Remove</button>
     </td>
+    <td>
+      
+    </td>
   </tr>
 )
 
@@ -40,16 +43,9 @@ export class CurrentEventSelection extends Component {
 
   selectedEventsList() {
     return this.state.currentSelectedEvents.map(function(currentEvent, i) {
-      console.log(currentEvent);
         return <RaceEvent raceEvent={currentEvent} key={i} />
     });
   }
-
-  // delete(id, e) {
-  //   axios.get('http://localhost:4000/fridaynightraces/currentselectedevents/delete/${id}')
-  //       .then(console.log('Deleted'))
-  //       .catch(err => console.log(err))
-  // }
 
   render() {
     return (

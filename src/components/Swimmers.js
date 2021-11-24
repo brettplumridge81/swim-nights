@@ -6,43 +6,45 @@ export class Swimmers extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { swimmers: [], loading: true };
+    this.state = { 
+      swimmers: [],
+      selectedSwimmerId: "", 
+      loading: true };
   }
 
   componentDidMount() {
     this.populateSwimmers();
+    this.handleSwimmerSelection = this.handleSwimmerSelection.bind(this);
   }
 
-  static renderSwimmersTable(swimmers) {
-    return (
-      <table className='table table-striped' aria-labelledby="tableLabel">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Age</th>
-          </tr>
-        </thead>
-        <tbody>
-          {swimmers.map(swimmer =>
-            <tr key={swimmer.name}>
-                <td>{swimmer.name}</td>
-                <td>{swimmer.age}</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    );
+  handleSwimmerSelection(event) {
+    console.log("SwimmerSelectEvent");
+    console.log(event.target.value);
+    this.setState({ selectedSwimmerId: event.target.value });
+    console.log(this.state.selectedSwimmerId);
+  }
+
+  static renderSwimmers(swimmers) {
+    return swimmers.map(function(swimmer) {
+      return <option value={swimmer.swimmerId}>{swimmer.name}</option>
+    });
   }
 
   render() {
     let contents = this.state.loading
       ? <p><em>Loading...</em></p>
-        : Swimmers.renderSwimmersTable(this.state.swimmers);
+        : Swimmers.renderSwimmers(this.state.swimmers);
 
     return (
       <div>
         <h1 id="tableLabel">Swimmers</h1>
-        {contents}
+        <select 
+          onChange={this.handleSwimmerSelection} 
+          value={this.state.value} 
+          key={this.state.value}>
+            <option label='Select Swimmer' value=''></option>
+          {contents}
+        </select>
       </div>
     );
   }
