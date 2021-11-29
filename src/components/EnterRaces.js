@@ -84,33 +84,6 @@ export class EnterRaces extends Component {
         });
   }
 
-  // async getEventsEntered() {
-  //   var eventTypeIdsEntered = [];
-  //   var eventsEntered;
-  //     axios.get('http://localhost:4000/fridaynightraces/raceevents/')
-  //     .then(response => {
-
-  //       var today = new Date(2021, 11, 20);
-
-  //       console.log(response.data);
-  //       console.log(today);
-  //       eventsEntered = response.data
-  //         // .filter(x => x.date[0] === today.getDate())
-  //         // .filter(x => x.date[1] === today.getMonth() + 1)
-  //         // .filter(x => x.date[2] === today.getFullYear())
-  //         // .filter(x => x.swimmerIds.includes(this.state.selectedSwimmerId))
-  //         .map(x => x.eventTypeId);
-
-  //       // console.log("eventsEntered");
-  //       // console.log("selectedSwimmer: " + this.state.selectedSwimmerId);
-  //       // console.log(eventsEntered);
-  //       eventsEntered.forEach(x => {
-  //         // console.log("x: " + x);
-  //         eventTypeIdsEntered.push(x);
-  //       });
-  //     });
-  // }
-
   setRaceNightEvents() {
     this.setState({
       raceNightEventTypes: this.state.eventTypes
@@ -132,6 +105,8 @@ export class EnterRaces extends Component {
           }
 
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
+
+          this.generateRaceSheetsForEvent(this.state.eventIdsToEnter);
         })
         .catch(function (error) {
           console.log(error);
@@ -150,6 +125,8 @@ export class EnterRaces extends Component {
           }
   
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
+
+          this.generateRaceSheetsForEvent(this.state.eventIdsToWithdraw);
         })
         .catch(function (error) {
           console.log(error);
@@ -160,6 +137,71 @@ export class EnterRaces extends Component {
       alert("Races Entered");
       window.location.reload(false);
     }, 50);
+  }
+
+  generateRaceSheetsForEvent(raceEventIds) {
+    var numberOfHeats;
+    var heats = [];
+    var swimmerIds = [];
+    var raceEvent;
+    var hcapTimes = [];
+    var goAts = [];
+    var currentSwimmerLastThreeTimes = [];
+
+    raceEventIds.forEach(raceEventId => {
+      raceEvent = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId);
+      swimmerIds = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId)[0].swimmerIds;
+      if (swimmerIds.length <= 7) {
+        numberOfHeats = 1;
+      } else {
+        numberOfHeats = swimmerIds.length !== 0 ? parseInt(swimmerIds.length / 6) : 0;
+      }
+      console.log(numberOfHeats);
+  
+      axios.get('http://localhost:4000/fridaynightraces/swimmerEventResults/')
+        .then(response => {
+          var swimmerEventResults = response.data
+            .filter(x => swimmerIds.includes(x.swimmerId))
+            .filter(x => raceEvent.eventTypeId === x.eventTypeId);
+
+          var lastThreeTimes;
+          var hcapTime;
+          swimmerIds.forEach(swimmerId => {
+            lastThreeTimes = swimmerEventResults.filter(x => x.swimmerId === swimmerId).slice(0, 3).map(x => x.recordedTime);
+            hcapTime = 0;
+            lastThreeTimes.forEach(time => {
+              if (hcapTime === 0 || parseInt(time) < hcapTime) {
+                hcapTime = parseInt(time);
+              }
+            });
+            swimmerIds.push(swimmerId);
+            hcapTimes.push(hcapTime);
+          });
+
+          var sortedHcapTimes = [];
+          sortedHcapTimes.push(hcapTime);
+          for (var i = 1; i < hcapTimes.length; i++) {
+            for (var j = 0; j < i; j++) {
+              if (hcapTimes[i] > sortedHcapTimes[j]) {
+                sortedHcapTimes[i + 1] = sortedHcapTimes[i];
+                sortedHcapTimes[i] = hcapTimes[j];
+              } else {
+                // sortedHcapTimes[i] = hcapTimes[i];
+              }
+              j++;
+            }
+            j = 0;
+            i++;
+          }
+          
+          hcapTimes.forEach(x => {
+
+          });
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    });
   }
 
   isEntered(currentEvent) {

@@ -83,7 +83,7 @@ fridayNightRacesRoutes.route('/raceevents/:id').get(function (req, res) {
     });
 });
 
-fridayNightRacesRoutes.route('/SwimmerEventResult').get(function (req, res) {
+fridayNightRacesRoutes.route('/swimmerEventResults').get(function (req, res) {
     let SwimmerEventResult = require('./swimmerEventResult.model');
     SwimmerEventResult.find(function (err, swimmer) {
         if (err) {

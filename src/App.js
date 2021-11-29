@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import { Home } from './components/Home';
 import { Create } from './components/Create';
 import { EnterRaces } from './components/EnterRaces';
+import { RaceSheets } from './components/RaceSheets';
 
 import './App.css';
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -29,6 +30,9 @@ export default class App extends Component {
                 <li className="navbar-item">
                   <Link to="/enter-races" className="nav-link">Enter Races</Link>
                 </li>
+                <li className="navbar-item">
+                  <Link to="/race-sheets" className="nav-link">Race Sheets</Link>
+                </li>
               </ul>
             </div>
           </nav>
@@ -36,6 +40,7 @@ export default class App extends Component {
           <Route exact path='/' component={Home} />
           <Route path='/create' component={Create} />
           <Route path='/enter-races' component={EnterRaces} />
+          <Route path='/race-sheets' component={RaceSheets} />
         </div>
       </Router>
     );
