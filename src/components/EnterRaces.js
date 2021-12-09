@@ -78,6 +78,8 @@ export class EnterRaces extends Component {
               .filter(x => x.date[1] === today.getMonth())
               .filter(x => x.date[2] === today.getFullYear())
           });
+          console.log("RaceNightsHere");
+          console.log(this.state.raceNightEvents);
         })
         .catch(function (error) {
           console.log(error);
@@ -100,13 +102,19 @@ export class EnterRaces extends Component {
         .then(response => {
           raceEvent = response.data.filter(x => x.raceEventId === raceEventId);
 
+          console.log("raceEventHere");
+          console.log(raceEvent);
           if (!raceEvent[0].swimmerIds.includes(this.state.selectedSwimmerId)) {
             raceEvent[0].swimmerIds.push(this.state.selectedSwimmerId);
           }
+          console.log("raceEventHere");
+          console.log(raceEvent);
 
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
 
-          this.generateRaceSheetsForEvent(this.state.eventIdsToEnter);
+          setTimeout(() => {
+            this.generateRaceSheetsForEvent(this.state.eventIdsToEnter);
+          }, 500);
         })
         .catch(function (error) {
           console.log(error);
@@ -126,82 +134,120 @@ export class EnterRaces extends Component {
   
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
 
-          this.generateRaceSheetsForEvent(this.state.eventIdsToWithdraw);
+          setTimeout(() => {
+            this.generateRaceSheetsForEvent(this.state.eventIdsToWithdraw);
+          }, 500);
         })
         .catch(function (error) {
           console.log(error);
         });
       });
 
-    setTimeout(function() {
-      alert("Races Entered");
-      window.location.reload(false);
-    }, 50);
+    // setTimeout(() => {
+    //   alert("Races Entered");
+    //   window.location.reload(false);
+    // }, 1000);
   }
 
   generateRaceSheetsForEvent(raceEventIds) {
     var numberOfHeats;
-    var heats = [];
     var swimmerIds = [];
     var raceEvent;
     var hcapTimes = [];
     var goAts = [];
-    var currentSwimmerLastThreeTimes = [];
 
-    raceEventIds.forEach(raceEventId => {
-      raceEvent = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId);
-      swimmerIds = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId)[0].swimmerIds;
-      if (swimmerIds.length <= 7) {
-        numberOfHeats = 1;
-      } else {
-        numberOfHeats = swimmerIds.length !== 0 ? parseInt(swimmerIds.length / 6) : 0;
-      }
-      console.log(numberOfHeats);
+    this.getRaceNightEventsData();
+
+    setTimeout(() => {
+      raceEventIds.forEach(raceEventId => {
+        raceEvent = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId);
+        // console.log("raceEvent");
+        // console.log(raceEvent);
+        swimmerIds = raceEvent[0].swimmerIds;
+        // console.log("swimmerIds.length");
+        // console.log(swimmerIds.length);
+        if (swimmerIds.length === 0) {
+          numberOfHeats = 0;
+        } else if (swimmerIds.length <= 7) {
+          numberOfHeats = 1;
+        } else {
+          numberOfHeats = swimmerIds.length !== 0 ? parseInt(swimmerIds.length / 6) : 0;
+        }
+        // console.log("numberOfHeats");
+        // console.log(numberOfHeats);
+        // console.log("raceEventId");
+        // console.log(raceEventId);
+        // console.log("swimmerIds-1");
+        // console.log(swimmerIds);
+    
+        axios.get('http://localhost:4000/fridaynightraces/swimmereventresults/')
+          .then(response => {
+            var swimmerEventResults = response.data
+              .filter(x => swimmerIds.includes(x.swimmerId))
+              .filter(x => raceEvent.eventTypeId === x.eventTypeId);
   
-      axios.get('http://localhost:4000/fridaynightraces/swimmerEventResults/')
-        .then(response => {
-          var swimmerEventResults = response.data
-            .filter(x => swimmerIds.includes(x.swimmerId))
-            .filter(x => raceEvent.eventTypeId === x.eventTypeId);
-
-          var lastThreeTimes;
-          var hcapTime;
-          swimmerIds.forEach(swimmerId => {
-            lastThreeTimes = swimmerEventResults.filter(x => x.swimmerId === swimmerId).slice(0, 3).map(x => x.recordedTime);
-            hcapTime = 0;
-            lastThreeTimes.forEach(time => {
-              if (hcapTime === 0 || parseInt(time) < hcapTime) {
-                hcapTime = parseInt(time);
-              }
+            // Store the swimmerIds and the hcapTimes
+            var lastThreeTimes;
+            var hcapTime;
+            swimmerIds.forEach(swimmerId => {
+              lastThreeTimes = swimmerEventResults.filter(x => x.swimmerId === swimmerId).slice(0, 3).map(x => x.recordedTime);
+              hcapTime = 10000;
+              lastThreeTimes.forEach(time => {
+                if (hcapTime === 10000 || parseInt(time) < hcapTime) {
+                  hcapTime = parseInt(time);
+                }
+              });
+              swimmerIds.push(swimmerId);
+              hcapTimes.push(hcapTime);
             });
-            swimmerIds.push(swimmerId);
-            hcapTimes.push(hcapTime);
-          });
-
-          var sortedHcapTimes = [];
-          sortedHcapTimes.push(hcapTime);
-          for (var i = 1; i < hcapTimes.length; i++) {
-            for (var j = 0; j < i; j++) {
-              if (hcapTimes[i] > sortedHcapTimes[j]) {
-                sortedHcapTimes[i + 1] = sortedHcapTimes[i];
-                sortedHcapTimes[i] = hcapTimes[j];
-              } else {
-                // sortedHcapTimes[i] = hcapTimes[i];
+  
+            // sort the hcapTimes and match the swimmerIds
+            for(var i = 0; i < hcapTimes.length; i++) {
+              for(var j = 0; j < hcapTimes.length; j++) {
+                if(hcapTimes[j] < hcapTimes[j+1]) {
+                  var temp = hcapTimes[j]
+                  hcapTimes[j] = hcapTimes[j+1]
+                  hcapTimes[j+1] = temp
+  
+                  temp = swimmerIds[j]
+                  swimmerIds[j] = swimmerIds[j+1]
+                  swimmerIds[j+1] = temp
+                }
               }
-              j++;
             }
-            j = 0;
-            i++;
-          }
-          
-          hcapTimes.forEach(x => {
-
+            
+            // Calculate and store the goAts
+            hcapTimes.forEach(x => {
+              goAts.push(hcapTimes[0] - x);
+            });
+  
+            this.populateRaceEventHeats(swimmerIds, hcapTimes, goAts, numberOfHeats);
+          })
+          .catch(function (error) {
+            console.log(error);
           });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    });
+      });
+    }, 500);
+  }
+
+  populateRaceEventHeats(swimmerIds, hcapTimes, goAts, numberOfHeats) {
+    console.log("swimmerIds-2");
+    console.log(swimmerIds);
+    console.log("hcapTimes");
+    console.log(hcapTimes);
+    console.log("goAts");
+    console.log(goAts);
+    console.log("numberOfHeats");
+    console.log(numberOfHeats);
+
+    var swimmerCount = 0
+    var numberOfSwimmers = swimmerIds.length;
+    var swimmersPerHeat = parseInt(numberOfSwimmers / numberOfHeats);
+    console.log(swimmersPerHeat);
+    var swimmersRemaining = numberOfSwimmers % numberOfHeats;
+    console.log(swimmersRemaining);
+    var swimmersPerHeats = [];
+    while (swimmerCount)
   }
 
   isEntered(currentEvent) {
@@ -250,7 +296,8 @@ export class EnterRaces extends Component {
   handleSwimmerSelect(swimmer) {
     this.setState({
       selectedSwimmerId: swimmer.swimmerId,
-      selectedSwimmerAge: swimmer.ageAtSeasonStart
+      selectedSwimmerAge: swimmer.ageAtSeasonStart,
+      raceNightEventTypes: []
     });
 
     setTimeout(() => {
