@@ -77,7 +77,7 @@ export class RaceSheets extends Component {
   }
 
   async getSwimmerPreviousThreeTimes() {
-    await axios.get('http://localhost:4000/fridaynightraces/swimmerEventResult/')
+    await axios.get('http://localhost:4000/fridaynightraces/swimmereventresults/')
         .then(response => {
           console.log("swimmerEventResults");
           console.log(response.data);

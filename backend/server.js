@@ -83,13 +83,24 @@ fridayNightRacesRoutes.route('/raceevents/:id').get(function (req, res) {
     });
 });
 
-fridayNightRacesRoutes.route('/swimmerEventResults').get(function (req, res) {
+fridayNightRacesRoutes.route('/swimmereventresults').get(function (req, res) {
     let SwimmerEventResult = require('./swimmerEventResult.model');
-    SwimmerEventResult.find(function (err, swimmer) {
+    SwimmerEventResult.find(function (err, swimmerEventResult) {
         if (err) {
             console.log(err);
         } else {
-            res.json(swimmer);
+            res.json(swimmerEventResult);
+        }
+    });
+});
+
+fridayNightRacesRoutes.route('/racesheets').get(function (req, res) {
+    let RaceSheet = require('./raceSheet.model');
+    SwimmerEventResult.find(function (err, raceSheet) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.json(raceSheet);
         }
     });
 });
@@ -171,20 +182,35 @@ fridayNightRacesRoutes.route('/raceevents/add_raceevent').post(function (req, re
         });
 });
 
-
-fridayNightRacesRoutes.route('/swimmerEventResult/add_selectedswimmer').post(function (req, res) {
-    console.log("Here");
-    let SwimmerEventResult = require('./swimmerEventResult.model');
-    let swimmerEventResult = new SwimmerEventResult(req.body);
+fridayNightRacesRoutes.route('/raceevents/add_racesheet').post(function (req, res) {
+    let RaceSheet = require('./raceSheet.model');
+    let raceSheet = new RaceSheet(req.body);
     console.log(req.body);
-    swimmerEventResult.save()
-        .then(swimmerEventResult => {
-            res.status(200).json({ 'swimmerEventResult': 'swimmerEventResult added successfully' });
+    raceSheet.save()
+        .then(raceEvent => {
+            res.status(200).json({ 'raceSheet': 'raceSheet added successfully' });
         })
         .catch(err => {
-            res.status(400).send('adding new swimmerEventResult failed');
+            res.status(400).send('adding new raceSheet failed');
         });
 });
+
+
+// fridayNightRacesRoutes.route('/swimmerEventResult/add_selectedswimmer').post(function (req, res) {
+//     console.log("Here");
+//     let SwimmerEventResult = require('./swimmerEventResult.model');
+//     let swimmerEventResult = new SwimmerEventResult(req.body);
+//     console.log(req.body);
+//     swimmerEventResult.save()
+//         .then(swimmerEventResult => {
+//             res.status(200).json({ 'swimmerEventResult': 'swimmerEventResult added successfully' });
+//         })
+//         .catch(err => {
+//             res.status(400).send('adding new swimmerEventResult failed');
+//         });
+// });
+
+
 
 
 
