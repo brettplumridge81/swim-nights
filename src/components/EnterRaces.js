@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import { v4 as uuidv4 } from 'uuid';
 
 export class EnterRaces extends Component {
     static displayName = EnterRaces.name;
@@ -143,10 +144,10 @@ export class EnterRaces extends Component {
         });
       });
 
-    // setTimeout(() => {
-    //   alert("Races Entered");
-    //   window.location.reload(false);
-    // }, 1000);
+    setTimeout(() => {
+      alert("Races Entered");
+      window.location.reload(false);
+    }, 1000);
   }
 
   generateRaceSheetsForEvent(raceEventIds) {
@@ -161,11 +162,8 @@ export class EnterRaces extends Component {
     setTimeout(() => {
       raceEventIds.forEach(raceEventId => {
         raceEvent = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId);
-        // console.log("raceEvent");
-        // console.log(raceEvent);
         swimmerIds = raceEvent[0].swimmerIds;
-        // console.log("swimmerIds.length");
-        // console.log(swimmerIds.length);
+
         if (swimmerIds.length === 0) {
           numberOfHeats = 0;
         } else if (swimmerIds.length <= 7) {
@@ -173,12 +171,6 @@ export class EnterRaces extends Component {
         } else {
           numberOfHeats = swimmerIds.length !== 0 ? parseInt(swimmerIds.length / 6) : 0;
         }
-        // console.log("numberOfHeats");
-        // console.log(numberOfHeats);
-        // console.log("raceEventId");
-        // console.log(raceEventId);
-        // console.log("swimmerIds-1");
-        // console.log(swimmerIds);
     
         axios.get('http://localhost:4000/fridaynightraces/swimmereventresults/')
           .then(response => {
@@ -221,7 +213,7 @@ export class EnterRaces extends Component {
               goAts.push(hcapTimes[0] - x);
             });
   
-            this.populateRaceEventHeats(swimmerIds, hcapTimes, goAts, numberOfHeats);
+            this.populateRaceEventHeats(swimmerIds, hcapTimes, goAts, numberOfHeats, raceEvent);
           })
           .catch(function (error) {
             console.log(error);
@@ -230,24 +222,35 @@ export class EnterRaces extends Component {
     }, 500);
   }
 
-  populateRaceEventHeats(swimmerIds, hcapTimes, goAts, numberOfHeats) {
-    console.log("swimmerIds-2");
-    console.log(swimmerIds);
-    console.log("hcapTimes");
-    console.log(hcapTimes);
-    console.log("goAts");
-    console.log(goAts);
-    console.log("numberOfHeats");
-    console.log(numberOfHeats);
-
+  populateRaceEventHeats(swimmerIds, hcapTimes, goAts, numberOfHeats, raceEvent) {
     var swimmerCount = 0
     var numberOfSwimmers = swimmerIds.length;
     var swimmersPerHeat = parseInt(numberOfSwimmers / numberOfHeats);
-    console.log(swimmersPerHeat);
-    var swimmersRemaining = numberOfSwimmers % numberOfHeats;
-    console.log(swimmersRemaining);
-    var swimmersPerHeats = [];
-    while (swimmerCount)
+    for (var heatCount = 0; heatCount < numberOfHeats; heatCount++) {
+      var heatSwimmerIds = [];
+      var heatHcapTimes = [];
+      var heatGoAts = [];
+
+      while (swimmersPerHeat % swimmerCount != 0) {
+        heatSwimmerIds.push(swimmerIds[swimmerCount]);
+        heatHcapTimes.push(hcapTimes[swimmerCount]);
+        heatGoAts.push(goAts[swimmerCount]);
+        swimmerCount++;
+      }
+
+      const newRaceSheet = {
+        raceSheetId: uuidv4(),
+        raceEventId: raceEvent.raceEventId,
+        eventTypeId: raceEvent.eventTypeId,
+        eventNumber: undefined,
+        heatNumber: heatCount + 1,
+        swimmerIds: heatSwimmerIds,
+        hcapTimes: heatHcapTimes,
+        goAts: heatGoAts
+      }
+
+      axios.post('http://localhost:4000/fridaynightraces/swimmers/add_racesheet', newRaceSheet);
+    }
   }
 
   isEntered(currentEvent) {

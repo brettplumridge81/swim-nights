@@ -96,7 +96,7 @@ fridayNightRacesRoutes.route('/swimmereventresults').get(function (req, res) {
 
 fridayNightRacesRoutes.route('/racesheets').get(function (req, res) {
     let RaceSheet = require('./raceSheet.model');
-    SwimmerEventResult.find(function (err, raceSheet) {
+    RaceSheet.find(function (err, raceSheet) {
         if (err) {
             console.log(err);
         } else {

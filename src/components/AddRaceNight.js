@@ -64,17 +64,21 @@ export class AddRaceNight extends Component {
             raceEventIds: this.state.selectedEventTypeIds
         }
 
+        var eventNumber = 1;
         this.state.selectedEventTypeIds.forEach(eventId => {
             const newRaceEvent = {
                 raceEventId: uuidv4(),
                 eventTypeId: eventId,
                 swimmerIds: [],
                 resultIds: [],
-                date: this.state.raceDate
+                date: this.state.raceDate,
+                eventNumber: eventNumber
             }
 
             axios.post('http://localhost:4000/fridaynightraces/raceevents/add_raceevent', newRaceEvent);
-        })
+
+            eventNumber++;
+        });
 
         axios.post('http://localhost:4000/fridaynightraces/racenights/add_racenight', newRaceNight);
 

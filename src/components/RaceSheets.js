@@ -6,25 +6,27 @@ export class RaceSheets extends Component {
   constructor(props) {
     super(props);
     this.state = { 
+      raceSheets: [],
       eventTypes: [],
-      raceNight: [],
-      raceNightEvents: [],
-      swimmers: []
+      raceNightEvents: []
     };
   }
 
   componentDidMount() {
-    this.populateSwimmers();
+    this.populateRaceSheets();
     this.populateEventTypesData();
-    this.getRaceNight();
     this.getRaceNightEventsData();
   }
 
-  async populateSwimmers() {
-    await axios.get('http://localhost:4000/fridaynightraces/swimmers/')
+  async populateRaceSheets() {
+    await axios.get('http://localhost:4000/fridaynightraces/racesheets/')
       .then(response => {
+        var today = new Date(2021, 11, 20);
         this.setState({ 
-          swimmers: response.data
+          raceSheets: response.data
+            .filter(x => x.date[0] === today.getDate())
+            .filter(x => x.date[1] === today.getMonth())
+            .filter(x => x.date[2] === today.getFullYear())
         });
       })
       .catch(function (error) {
@@ -37,22 +39,6 @@ export class RaceSheets extends Component {
       .then(response => {
         this.setState({ 
           eventTypes: response.data
-        });
-      })
-      .catch(function (error) {
-        console.log(error);
-      })
-  }
-
-  async getRaceNight() {
-    await axios.get('http://localhost:4000/fridaynightraces/racenights/')
-      .then(response => {
-        var today = new Date(2021, 11, 20);
-        this.setState({ 
-          raceNight: response.data
-            .filter(x => x.date[0] === today.getDate())
-            .filter(x => x.date[1] === today.getMonth())
-            .filter(x => x.date[2] === today.getFullYear())
         });
       })
       .catch(function (error) {
@@ -76,25 +62,20 @@ export class RaceSheets extends Component {
         });
   }
 
-  async getSwimmerPreviousThreeTimes() {
-    await axios.get('http://localhost:4000/fridaynightraces/swimmereventresults/')
-        .then(response => {
-          console.log("swimmerEventResults");
-          console.log(response.data);
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-  }
+  
 
   render() {
     return (
-      this.state.raceNightEvents.map(raceEvent => {
-        var eventType = this.state.eventTypes.filter(eventType => raceEvent.eventTypeId === eventType.eventTypeId)[0];
-        console.log("raceEvent");
-        console.log(raceEvent);
+      this.state.raceSheets.map(raceSheet => {
+        var eventType = this.state.eventTypes.filter(eventType => raceSheet.eventTypeId === eventType.eventTypeId)[0];
+        var raceEvent = this.state.raceNightEvents.filter(raceEvent => raceSheet.raceEventId === raceEvent.raceEventId)[0];
+        console.log("raceSheet");
+        console.log(raceSheet);
         console.log("eventType");
         console.log(eventType);
+        console.log("raceEvent");
+        console.log(raceEvent);
+
         return (
           <div>
             <h1>Maitland Swimming Club Race Sheet</h1>

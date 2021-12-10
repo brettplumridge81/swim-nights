@@ -16,6 +16,9 @@ let RaceEvent = new Schema({
     },
     date: {
         type: [Number]
+    },
+    eventNumber: {
+        type: Number
     }
 });
 
