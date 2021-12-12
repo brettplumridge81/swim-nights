@@ -79,8 +79,6 @@ export class EnterRaces extends Component {
               .filter(x => x.date[1] === today.getMonth())
               .filter(x => x.date[2] === today.getFullYear())
           });
-          console.log("RaceNightsHere");
-          console.log(this.state.raceNightEvents);
         })
         .catch(function (error) {
           console.log(error);
@@ -103,13 +101,9 @@ export class EnterRaces extends Component {
         .then(response => {
           raceEvent = response.data.filter(x => x.raceEventId === raceEventId);
 
-          console.log("raceEventHere");
-          console.log(raceEvent);
           if (!raceEvent[0].swimmerIds.includes(this.state.selectedSwimmerId)) {
             raceEvent[0].swimmerIds.push(this.state.selectedSwimmerId);
           }
-          console.log("raceEventHere");
-          console.log(raceEvent);
 
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
 
@@ -238,18 +232,25 @@ export class EnterRaces extends Component {
         swimmerCount++;
       }
 
+      console.log("raceEvent");
+      console.log(raceEvent);
+
       const newRaceSheet = {
         raceSheetId: uuidv4(),
-        raceEventId: raceEvent.raceEventId,
-        eventTypeId: raceEvent.eventTypeId,
-        eventNumber: undefined,
+        date: raceEvent[0].date,
+        raceEventId: raceEvent[0].raceEventId,
+        eventTypeId: raceEvent[0].eventTypeId,
+        eventNumber: raceEvent[0].eventNumber,
         heatNumber: heatCount + 1,
         swimmerIds: heatSwimmerIds,
         hcapTimes: heatHcapTimes,
         goAts: heatGoAts
       }
 
-      axios.post('http://localhost:4000/fridaynightraces/swimmers/add_racesheet', newRaceSheet);
+      console.log("newRaceSheet");
+      console.log(newRaceSheet);
+
+      axios.post('http://localhost:4000/fridaynightraces/racesheets/add_racesheet', newRaceSheet);
     }
   }
 

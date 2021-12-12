@@ -8,11 +8,11 @@ let Swimmer = new Schema({
     name: {
         type: String
     },
-    dob: {
-        type: [Number]
+    gender: {
+        type: String
     },
-    ageAtSeasonStart: {
-        type: Number
+    grade: {
+        type: String
     },
     points: {
         type: Number

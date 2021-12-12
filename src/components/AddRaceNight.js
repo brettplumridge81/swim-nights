@@ -113,20 +113,55 @@ export class AddRaceNight extends Component {
         var index = selectedEvents.indexOf(eventType);
         selectedEvents.splice(index, 1);
         var selectedEventIds = this.state.selectedEventTypeIds;
-        var idIndex = selectedEventIds.indexOf(eventType.eventTypeId);
-        selectedEventIds.splice(idIndex, 1);
+        // var idIndex = selectedEventIds.indexOf(eventType.eventTypeId);
+        // selectedEventIds.splice(idIndex, 1);
+        selectedEventIds.splice(index, 1);
         this.setState({ 
             selectedEventTypes: selectedEvents,
             selectedEventTypeIds: selectedEventIds 
         });
     }
 
-    handleMoveUp() {
+    handleMoveUp(eventType) {
         console.log("Move up");
+        var selectedEvents = this.state.selectedEventTypes;
+        var index = selectedEvents.indexOf(eventType);
+        if (index === 0) {
+            return;
+        }
+        selectedEvents.splice(index - 1, 0, selectedEvents.splice(index, 1)[0]);
+
+        var selectedEventIds = this.state.selectedEventTypeIds;
+        selectedEventIds.splice(index - 1, 0, selectedEventIds.splice(index, 1)[0]);
+
+        this.setState({ 
+            selectedEventTypes: selectedEvents,
+            selectedEventTypeIds: selectedEventIds 
+        });
     }
 
-    handleMoveDown() {
+    handleMoveDown(eventType) {
         console.log("Move down");
+        var selectedEvents = this.state.selectedEventTypes;
+        var index = selectedEvents.indexOf(eventType);
+        if (index === selectedEvents.length) {
+            return;
+        }
+        selectedEvents.splice(index + 1, 0, selectedEvents.splice(index, 1)[0]);
+
+        var selectedEventIds = this.state.selectedEventTypeIds;
+        selectedEventIds.splice(index, 0, selectedEventIds.splice(index, 1)[0]);
+
+        this.setState({ 
+            selectedEventTypes: selectedEvents,
+            selectedEventTypeIds: selectedEventIds 
+        });
+    }
+
+    moveRaceEventPosition(arr, fromIndex, toIndex) {
+        var element = arr[fromIndex];
+        arr.splice(fromIndex, 1);
+        arr.splice(toIndex, 0, element);
     }
 
     render() {
@@ -138,79 +173,81 @@ export class AddRaceNight extends Component {
                 </label>
                 <div>
                     <table style={{width:'100%'}}>
-                        <tr>
-                            <td style={{verticalAlign:'top', width:'50%'}}>
-                                <h3>Available Events</h3>
-                                <table className="table table-striped" style={{ marginTop: 20 }}>
-                                    <thead>
-                                        <tr>
-                                        <th>Age</th>
-                                        <th>Distance</th>
-                                        <th>Stroke</th>
-                                        <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {
-                                            this.state.eventTypes.map((currentEvent, i) => (
-                                                <tr>
-                                                    <td>{currentEvent.minAge} - {currentEvent.maxAge}</td>
-                                                    <td>{currentEvent.distance}</td>
-                                                    <td>{currentEvent.stroke}</td>
-                                                    <td>
-                                                        <button onClick={() => this.handleAdd(currentEvent)}>Add</button>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        }
-                                    </tbody>
-                                </table>
-                            </td>
-                            <td style={{verticalAlign:'top', width:'50%'}}>
-                                <h3>Selected Events</h3>
-                                <table className="table table-striped" style={{ marginTop: 20 }}>
-                                    <thead>
-                                        <tr>
-                                        <th>Age</th>
-                                        <th>Distance</th>
-                                        <th>Stroke</th>
-                                        <th></th>
-                                        <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {
-                                            this.state.selectedEventTypes.map((currentEvent, i) => (
-                                                <tr style={{verticalAlign:'middle'}}>
-                                                    <td>{currentEvent.minAge} - {currentEvent.maxAge}</td>
-                                                    <td>{currentEvent.distance}</td>
-                                                    <td>{currentEvent.stroke}</td>
-                                                    <td>
-                                                        <button onClick={() => this.handleRemove(currentEvent)}>Remove</button>
-                                                    </td>
-                                                    <td>
-                                                        <table>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td>
-                                                                        <button style={{background:'none', border:'none'}} onClick={this.handleMoveUp}>&#8593;</button>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>
-                                                                        <button style={{background:'none', border:'none'}} onClick={this.handleMoveDown}>&#8595;</button>
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        }
-                                    </tbody>
-                                </table>
-                            </td>
-                        </tr>
+                        <tbody>
+                            <tr>
+                                <td style={{verticalAlign:'top', width:'50%'}}>
+                                    <h3>Available Events</h3>
+                                    <table className="table table-striped" style={{ marginTop: 20 }}>
+                                        <thead>
+                                            <tr>
+                                            <th>Grades</th>
+                                            <th>Distance</th>
+                                            <th>Stroke</th>
+                                            <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {
+                                                this.state.eventTypes.map((currentEvent, i) => (
+                                                    <tr>
+                                                        <td>{currentEvent.minGrade} - {currentEvent.maxGrade}</td>
+                                                        <td>{currentEvent.distance}</td>
+                                                        <td>{currentEvent.stroke}</td>
+                                                        <td>
+                                                            <button onClick={() => this.handleAdd(currentEvent)}>Add</button>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            }
+                                        </tbody>
+                                    </table>
+                                </td>
+                                <td style={{verticalAlign:'top', width:'50%'}}>
+                                    <h3>Selected Events</h3>
+                                    <table className="table table-striped" style={{ marginTop: 20 }}>
+                                        <thead>
+                                            <tr>
+                                            <th>Age</th>
+                                            <th>Distance</th>
+                                            <th>Stroke</th>
+                                            <th></th>
+                                            <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {
+                                                this.state.selectedEventTypes.map((currentEvent, i) => (
+                                                    <tr style={{verticalAlign:'middle'}}>
+                                                        <td>{currentEvent.minGrade} - {currentEvent.maxGrade}</td>
+                                                        <td>{currentEvent.distance}</td>
+                                                        <td>{currentEvent.stroke}</td>
+                                                        <td>
+                                                            <button onClick={() => this.handleRemove(currentEvent)}>Remove</button>
+                                                        </td>
+                                                        <td>
+                                                            <table>
+                                                                <tbody>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <button style={{background:'none', border:'none'}} onClick={() => this.handleMoveUp(currentEvent)}>&#8593;</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <button style={{background:'none', border:'none'}} onClick={() => this.handleMoveDown(currentEvent)}>&#8595;</button>
+                                                                        </td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            }
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
                 <button onClick={() => this.handleCreateRaceNight()}>Create Race Night</button>

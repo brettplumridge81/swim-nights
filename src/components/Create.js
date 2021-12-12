@@ -12,8 +12,11 @@ export class Create extends Component {
   static renderCreateScreen() {
       return (
         <div>
-            <AddSwimmer />
-            <AddEventType />
+            <h2>New Swimmer</h2>
+            <AddSwimmer /> <br/>
+            <h2>New Event</h2>
+            <AddEventType /> <br/>
+            <h2>New Race Night</h2>
             <AddRaceNight />
         </div>
     );

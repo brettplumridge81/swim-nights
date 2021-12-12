@@ -11,11 +11,29 @@ let EventType = new Schema({
     distance: {
         type: Number
     },
-    minAge: {
+    minGrade: {
+        type: String
+    },
+    maxGrade: {
+        type: String
+    },
+    gender: {
+        type: String
+    },
+    isRelay: {
+        type: Boolean
+    },
+    swimmersPerTeam: {
         type: Number
     },
-    maxAge: {
-        type: Number
+    isScratch: {
+        type: Boolean
+    },
+    isEnterOwnHcapTime: {
+        type: Boolean
+    },
+    isNovalty: {
+        type: Boolean
     }
 });
 

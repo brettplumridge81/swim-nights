@@ -5,6 +5,9 @@ let RaceSheet = new Schema({
     raceSheetId: {
         type: String
     },
+    date: {
+        type: [Number]
+    },
     raceEventId: {
         type: String
     },

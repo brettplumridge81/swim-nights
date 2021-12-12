@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 export class AddSwimmer extends Component {
@@ -11,12 +10,13 @@ export class AddSwimmer extends Component {
         this.state = {
             swimmerId: uuidv4(),
             name: "",
-            date: new Date(),
-            dob: []
+            gender: "",
+            grade: ""
         };
 
         this.handleChangeName = this.handleChangeName.bind(this);
-        this.handleChangeDob = this.handleChangeDob.bind(this);
+        this.handleChangeGender = this.handleChangeGender.bind(this);
+        this.handleChangeGrade = this.handleChangeGrade.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
@@ -24,31 +24,26 @@ export class AddSwimmer extends Component {
         this.setState({ name: event.target.value });
     }
 
-    handleChangeDob(event) {
-        this.setState({ date: event });
-        var dateValues = [];
-        dateValues.push(event.getDate());
-        dateValues.push(event.getMonth() + 1);
-        dateValues.push(event.getFullYear());
-        this.setState({ dob: dateValues });       
+    handleChangeGender(event) {
+        this.setState({ gender: event.target.value });
+    }
+
+    handleChangeGrade(event) {
+        this.setState({ grade: event.target.value });       
     }
 
     handleSubmit(event) {
         event.preventDefault();
 
-        var seasonStartDate = [1, 10, 2021];
-        var age = seasonStartDate[2] - this.state.dob[2];
-        if (this.state.dob[1] > seasonStartDate[1]) {
-            age = age - 1;
-        } else if (this.state.dob[1] >= seasonStartDate[1] && this.state.dob[0] > seasonStartDate[0]) {
-            age = age - 1;
+        if (this.state.name === "" || this.state.gender === "" || this.state.grade === "") {
+            return;
         }
 
         const newSwimmer = {
             swimmerId: this.state.swimmerId,
             name: this.state.name,
-            dob: this.state.dob,
-            ageAtSeasonStart: age,
+            gender: this.state.gender,
+            grade: this.state.grade,
             points: 0
         }
 
@@ -62,15 +57,35 @@ export class AddSwimmer extends Component {
         return (
             <form onSubmit={this.handleSubmit} >
                 <label>
-                    Name:
+                    Name: &nbsp;
                     <input type="text" value={this.state.name} onChange={this.handleChangeName} />
                 </label>
-                <label>
-                    DOB:
-                    <DatePicker dateFormat="dd-MM-yyyy" selected={this.state.date} onSelect={this.handleChangeDob} />
-                </label>
+
+                &emsp;
+
+                <label for="gender">Gender: &nbsp;</label>
+                <select name="gender" id="gender" onChange={this.handleChangeGender}>
+                    <option value="" selected disabled hidden> Select Gender...</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+
+                &emsp;
+
+                <label for="grade">Grade: &nbsp;</label>
+                <select name="grade" id="grade" onChange={this.handleChangeGrade}>
+                    <option value="" selected disabled hidden> Select Grade...</option>
+                    <option value="e">E-Grade</option>
+                    <option value="d">D-Grade</option>
+                    <option value="c">C-Grade</option>
+                    <option value="b">B-Grade</option>
+                    <option value="a">A-Grade</option>
+                </select>
+
+                <br/><br/>
+
                 <input type="submit" value="Submit" />
             </form>
         )
-  }
+    }
 }

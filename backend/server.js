@@ -182,7 +182,7 @@ fridayNightRacesRoutes.route('/raceevents/add_raceevent').post(function (req, re
         });
 });
 
-fridayNightRacesRoutes.route('/raceevents/add_racesheet').post(function (req, res) {
+fridayNightRacesRoutes.route('/racesheets/add_racesheet').post(function (req, res) {
     let RaceSheet = require('./raceSheet.model');
     let raceSheet = new RaceSheet(req.body);
     console.log(req.body);
