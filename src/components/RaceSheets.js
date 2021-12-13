@@ -138,6 +138,8 @@ export class RaceSheets extends Component {
               </table>
             </div>
           );
+        } else {
+          return (<p></p>)
         }
       })
     );

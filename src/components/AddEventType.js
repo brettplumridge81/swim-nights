@@ -10,8 +10,7 @@ export class AddEventType extends Component {
             eventTypeId: uuidv4(),
             stroke: "",
             distance: 0,
-            minGrade: "",
-            maxGrade: "",
+            grades: [],
             gender: "",
             isRelay: false,
             swimmersPerTeam: 1,
@@ -22,8 +21,7 @@ export class AddEventType extends Component {
 
         this.handleChangeStroke = this.handleChangeStroke.bind(this);
         this.handleChangeDistance = this.handleChangeDistance.bind(this);
-        this.handleChangeMinGrade = this.handleChangeMinGrade.bind(this);
-        this.handleChangeMaxGrade = this.handleChangeMaxGrade.bind(this);
+        this.handleChangeGradesList = this.handleChangeGradesList.bind(this);
         this.handleChangeGender = this.handleChangeGender.bind(this);
         this.handleChangeIsRelay = this.handleChangeIsRelay.bind(this);
         this.handleChangeSwimmersPerTeam = this.handleChangeSwimmersPerTeam.bind(this);
@@ -41,12 +39,15 @@ export class AddEventType extends Component {
         this.setState({ distance: event.target.value });
     }
 
-    handleChangeMinGrade(event) {
-        this.setState({ minGrade: event.target.value });
-    }
-
-    handleChangeMaxGrade(event) {
-        this.setState({ maxGrade: event.target.value });
+    handleChangeGradesList(event) {
+        var grades = this.state.grades;
+        if (event.target.checked) {
+            grades.push(event.target.id);
+        } else {
+            var index = grades.indexOf(event.target.id);
+            grades.splice(index, 1);
+        }
+        this.setState({ grades: grades });
     }
 
     handleChangeGender(event) {
@@ -84,12 +85,11 @@ export class AddEventType extends Component {
 
         console.log(this.state.stroke);
         console.log(this.state.distance);
-        console.log(this.state.minGrade);
-        console.log(this.state.maxGrade);
+        console.log(this.state.grades);
         console.log(this.state.gender);
 
-        if (this.state.stroke === "" || this.state.distance === 0 || this.state.minGrade === "" || 
-            this.state.maxGrade === "" || this.state.gender === "") {
+        if (this.state.stroke === "" || this.state.distance === 0 || this.state.grades === [] || 
+        this.state.gender === "") {
             return;
         }
 
@@ -97,8 +97,7 @@ export class AddEventType extends Component {
             eventTypeId: this.state.eventTypeId,
             stroke: this.state.stroke,
             distance: this.state.distance,
-            minGrade: this.state.minGrade,
-            maxGrade: this.state.maxGrade,
+            grades: this.state.grades,
             gender: this.state.gender,
             isRelay: this.state.isRelay,
             swimmersPerTeam: this.state.swimmersPerTeam,
@@ -165,25 +164,19 @@ export class AddEventType extends Component {
 
                 <br/>
 
-                <label for="min-grade">Min Grade: &nbsp;</label>
-                <select name="min-grade" id="min-grade" onChange={this.handleChangeMinGrade}>
-                    <option value="" selected disabled hidden> Select Grade...</option>
-                    <option value="e">E-Grade</option>
-                    <option value="d">D-Grade</option>
-                    <option value="c">C-Grade</option>
-                    <option value="b">B-Grade</option>
-                    <option value="a">A-Grade</option>
-                </select>
-                &emsp;
-                <label for="max-grade">Max Grade: &nbsp;</label>
-                <select name="max-grade" id="max-grade" onChange={this.handleChangeMaxGrade}>
-                    <option value="" selected disabled hidden> Select Grade...</option>
-                    <option value="e">E-Grade</option>
-                    <option value="d">D-Grade</option>
-                    <option value="c">C-Grade</option>
-                    <option value="b">B-Grade</option>
-                    <option value="a">A-Grade</option>
-                </select>
+                <label for="grades">Grades: &nbsp;</label>
+                <input type="checkbox" id="e-grade" name="e-grade" onClick={this.handleChangeGradesList}/>
+                <label for="e-grade">&nbsp; E-Grade &emsp;</label>
+                <input type="checkbox" id="d-grade" name="d-grade" onClick={this.handleChangeGradesList}/>
+                <label for="d-grade">&nbsp; D-Grade &emsp;</label>
+                <input type="checkbox" id="c-grade" name="c-grade" onClick={this.handleChangeGradesList}/>
+                <label for="c-grade">&nbsp; C-Grade &emsp;</label>
+                <input type="checkbox" id="b-grade" name="b-grade" onClick={this.handleChangeGradesList}/>
+                <label for="b-grade">&nbsp; B-Grade &emsp;</label>
+                <input type="checkbox" id="a-grade" name="a-grade" onClick={this.handleChangeGradesList}/>
+                <label for="a-grade">&nbsp; A-Grade &emsp;</label>
+                <input type="checkbox" id="15-years" name="15-years" onClick={this.handleChangeGradesList}/>
+                <label for="15-years">&nbsp; 15-Years &emsp;</label>
 
                 <br/>
 
