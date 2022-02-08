@@ -13,8 +13,8 @@ export class EnterRaces extends Component {
       raceNightEventTypes: [],
       raceNightEvents: [],
       swimmers: [],
-      selectedSwimmerId: "",
-      selectedSwimmerAge: "",
+      selectedSwimmerName: "",
+      selectedSwimmerGrade: "",
       eventIdsToEnter: [],
       eventIdsToWithdraw: []
     };
@@ -86,23 +86,33 @@ export class EnterRaces extends Component {
   }
 
   setRaceNightEvents() {
+    if (this.state.raceNight.length === 0) {
+      return;
+    }
+
     this.setState({
       raceNightEventTypes: this.state.eventTypes
         .filter(x => this.state.raceNight[0].raceEventIds.includes(x.eventTypeId))
-        .filter(x => this.state.selectedSwimmerAge >= x.minAge && this.state.selectedSwimmerAge <= x.maxAge)
+        .filter(x => x.grades.includes(this.state.selectedSwimmerGrade))
     });
   }
 
   handleEnterRaces() {
+    console.log("this.state.eventIdsToEnter");
+    console.log(this.state.eventIdsToEnter);
+    console.log("this.state.eventIdsToWithdraw");
+    console.log(this.state.eventIdsToWithdraw);
     // Enter selected events
     var raceEvent;
     this.state.eventIdsToEnter.forEach(raceEventId => {
       axios.get('http://localhost:4000/fridaynightraces/raceevents/')
         .then(response => {
           raceEvent = response.data.filter(x => x.raceEventId === raceEventId);
+          console.log("-----raceEvent-----");
+          console.log(raceEvent);
 
-          if (!raceEvent[0].swimmerIds.includes(this.state.selectedSwimmerId)) {
-            raceEvent[0].swimmerIds.push(this.state.selectedSwimmerId);
+          if (!raceEvent[0].swimmerNames.includes(this.state.selectedSwimmerName)) {
+            raceEvent[0].swimmerNames.push(this.state.selectedSwimmerName);
           }
 
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
@@ -121,10 +131,12 @@ export class EnterRaces extends Component {
       axios.get('http://localhost:4000/fridaynightraces/raceevents/')
         .then(response => {
           raceEvent = response.data.filter(x => x.raceEventId === raceEventId);
+          console.log("-----     raceEvent     -----");
+          console.log(raceEvent);
 
-          if (raceEvent[0].swimmerIds.includes(this.state.selectedSwimmerId)) {
-            var index = raceEvent[0].swimmerIds.indexOf(this.state.selectedSwimmerId);
-            raceEvent[0].swimmerIds.splice(index, 1);
+          if (raceEvent[0].swimmerNames.includes(this.state.selectedSwimmerName)) {
+            var index = raceEvent[0].swimmerNames.indexOf(this.state.selectedSwimmerName);
+            raceEvent[0].swimmerNames.splice(index, 1);
           }
   
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
@@ -138,15 +150,15 @@ export class EnterRaces extends Component {
         });
       });
 
-    setTimeout(() => {
-      alert("Races Entered");
-      window.location.reload(false);
-    }, 1000);
+    // setTimeout(() => {
+    //   alert("Races Entered");
+    //   window.location.reload(false);
+    // }, 1000);
   }
 
   generateRaceSheetsForEvent(raceEventIds) {
     var numberOfHeats;
-    var swimmerIds = [];
+    var swimmerNames = [];
     var raceEvent;
     var hcapTimes = [];
     var goAts = [];
@@ -156,38 +168,38 @@ export class EnterRaces extends Component {
     setTimeout(() => {
       raceEventIds.forEach(raceEventId => {
         raceEvent = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId);
-        swimmerIds = raceEvent[0].swimmerIds;
+        swimmerNames = raceEvent[0].swimmerNames;
 
-        if (swimmerIds.length === 0) {
+        if (swimmerNames.length === 0) {
           numberOfHeats = 0;
-        } else if (swimmerIds.length <= 7) {
+        } else if (swimmerNames.length <= 7) {
           numberOfHeats = 1;
         } else {
-          numberOfHeats = swimmerIds.length !== 0 ? parseInt(swimmerIds.length / 6) : 0;
+          numberOfHeats = swimmerNames.length !== 0 ? parseInt(swimmerNames.length / 6) : 0;
         }
     
         axios.get('http://localhost:4000/fridaynightraces/swimmereventresults/')
           .then(response => {
             var swimmerEventResults = response.data
-              .filter(x => swimmerIds.includes(x.swimmerId))
+              .filter(x => swimmerNames.includes(x.swimmerName))
               .filter(x => raceEvent.eventTypeId === x.eventTypeId);
   
-            // Store the swimmerIds and the hcapTimes
+            // Store the swimmerNames and the hcapTimes
             var lastThreeTimes;
             var hcapTime;
-            swimmerIds.forEach(swimmerId => {
-              lastThreeTimes = swimmerEventResults.filter(x => x.swimmerId === swimmerId).slice(0, 3).map(x => x.recordedTime);
+            swimmerNames.forEach(swimmerName => {
+              lastThreeTimes = swimmerEventResults.filter(x => x.swimmerName === swimmerName).slice(0, 3).map(x => x.recordedTime);
               hcapTime = 10000;
               lastThreeTimes.forEach(time => {
                 if (hcapTime === 10000 || parseInt(time) < hcapTime) {
                   hcapTime = parseInt(time);
                 }
               });
-              swimmerIds.push(swimmerId);
+              swimmerNames.push(swimmerName);
               hcapTimes.push(hcapTime);
             });
   
-            // sort the hcapTimes and match the swimmerIds
+            // sort the hcapTimes and match the swimmerNames
             for(var i = 0; i < hcapTimes.length; i++) {
               for(var j = 0; j < hcapTimes.length; j++) {
                 if(hcapTimes[j] < hcapTimes[j+1]) {
@@ -195,9 +207,9 @@ export class EnterRaces extends Component {
                   hcapTimes[j] = hcapTimes[j+1]
                   hcapTimes[j+1] = temp
   
-                  temp = swimmerIds[j]
-                  swimmerIds[j] = swimmerIds[j+1]
-                  swimmerIds[j+1] = temp
+                  temp = swimmerNames[j]
+                  swimmerNames[j] = swimmerNames[j+1]
+                  swimmerNames[j+1] = temp
                 }
               }
             }
@@ -207,7 +219,7 @@ export class EnterRaces extends Component {
               goAts.push(hcapTimes[0] - x);
             });
   
-            this.populateRaceEventHeats(swimmerIds, hcapTimes, goAts, numberOfHeats, raceEvent);
+            this.populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent);
           })
           .catch(function (error) {
             console.log(error);
@@ -216,17 +228,17 @@ export class EnterRaces extends Component {
     }, 500);
   }
 
-  populateRaceEventHeats(swimmerIds, hcapTimes, goAts, numberOfHeats, raceEvent) {
+  populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent) {
     var swimmerCount = 0
-    var numberOfSwimmers = swimmerIds.length;
+    var numberOfSwimmers = swimmerNames.length;
     var swimmersPerHeat = parseInt(numberOfSwimmers / numberOfHeats);
     for (var heatCount = 0; heatCount < numberOfHeats; heatCount++) {
-      var heatSwimmerIds = [];
+      var heatSwimmerNames = [];
       var heatHcapTimes = [];
       var heatGoAts = [];
 
-      while (swimmersPerHeat % swimmerCount != 0) {
-        heatSwimmerIds.push(swimmerIds[swimmerCount]);
+      while (swimmersPerHeat % swimmerCount !== 0) {
+        heatSwimmerNames.push(swimmerNames[swimmerCount]);
         heatHcapTimes.push(hcapTimes[swimmerCount]);
         heatGoAts.push(goAts[swimmerCount]);
         swimmerCount++;
@@ -242,7 +254,7 @@ export class EnterRaces extends Component {
         eventTypeId: raceEvent[0].eventTypeId,
         eventNumber: raceEvent[0].eventNumber,
         heatNumber: heatCount + 1,
-        swimmerIds: heatSwimmerIds,
+        swimmerNames: heatSwimmerNames,
         hcapTimes: heatHcapTimes,
         goAts: heatGoAts
       }
@@ -256,7 +268,7 @@ export class EnterRaces extends Component {
 
   isEntered(currentEvent) {
     var raceEvent = this.state.raceNightEvents.filter(x => x.eventTypeId === currentEvent.eventTypeId);
-    if (raceEvent[0].swimmerIds.includes(this.state.selectedSwimmerId)) {
+    if (raceEvent[0].swimmerNames.includes(this.state.selectedSwimmerName)) {
       return true;
     } else {
       return false;
@@ -299,14 +311,32 @@ export class EnterRaces extends Component {
 
   handleSwimmerSelect(swimmer) {
     this.setState({
-      selectedSwimmerId: swimmer.swimmerId,
-      selectedSwimmerAge: swimmer.ageAtSeasonStart,
+      selectedSwimmerName: swimmer.name,
+      selectedSwimmerGrade: swimmer.grade,
       raceNightEventTypes: []
     });
 
     setTimeout(() => {
       this.setRaceNightEvents();
     },50);
+  }
+
+  produceGradesString(grades) {
+    var string = "";
+    string = string + grades[0];
+    for (var i = 1; i < grades.length - 1; i++) {
+        string = string + ", " + grades[i];
+    }
+    if (grades.length > 1) {
+        string = string + " & " + grades[grades.length - 1] + " grades";
+    } else {
+        if (grades[grades.length - 1] === "15-years") {
+            string = string + " & over";
+        } else {
+            string = string + "-grade";
+        }
+    }
+    return string;
   }
 
   render() {
@@ -331,7 +361,7 @@ export class EnterRaces extends Component {
             <table className="table table-striped" style={{ marginTop: 20 }}>
               <thead>
                 <tr>
-                  <th>Age</th>
+                  <th>Grades</th>
                   <th>Distance</th>
                   <th>Stroke</th>
                   <th></th>
@@ -341,7 +371,7 @@ export class EnterRaces extends Component {
                 {
                   this.state.raceNightEventTypes.map((currentEvent, i) => (
                     <tr>
-                      <td>{currentEvent.minAge} - {currentEvent.maxAge}</td>
+                      <td>{this.produceGradesString(currentEvent.grades)}</td>
                       <td>{currentEvent.distance}</td>
                       <td>{currentEvent.stroke}</td>
                       <td>

@@ -165,16 +165,16 @@ export class AddEventType extends Component {
                 <br/>
 
                 <label for="grades">Grades: &nbsp;</label>
-                <input type="checkbox" id="e-grade" name="e-grade" onClick={this.handleChangeGradesList}/>
-                <label for="e-grade">&nbsp; E-Grade &emsp;</label>
-                <input type="checkbox" id="d-grade" name="d-grade" onClick={this.handleChangeGradesList}/>
-                <label for="d-grade">&nbsp; D-Grade &emsp;</label>
-                <input type="checkbox" id="c-grade" name="c-grade" onClick={this.handleChangeGradesList}/>
-                <label for="c-grade">&nbsp; C-Grade &emsp;</label>
-                <input type="checkbox" id="b-grade" name="b-grade" onClick={this.handleChangeGradesList}/>
-                <label for="b-grade">&nbsp; B-Grade &emsp;</label>
-                <input type="checkbox" id="a-grade" name="a-grade" onClick={this.handleChangeGradesList}/>
-                <label for="a-grade">&nbsp; A-Grade &emsp;</label>
+                <input type="checkbox" id="E" name="E" onClick={this.handleChangeGradesList}/>
+                <label for="E">&nbsp; E-Grade &emsp;</label>
+                <input type="checkbox" id="D" name="D" onClick={this.handleChangeGradesList}/>
+                <label for="D">&nbsp; D-Grade &emsp;</label>
+                <input type="checkbox" id="C" name="C" onClick={this.handleChangeGradesList}/>
+                <label for="C">&nbsp; C-Grade &emsp;</label>
+                <input type="checkbox" id="B" name="B" onClick={this.handleChangeGradesList}/>
+                <label for="B">&nbsp; B-Grade &emsp;</label>
+                <input type="checkbox" id="A" name="A" onClick={this.handleChangeGradesList}/>
+                <label for="A">&nbsp; A-Grade &emsp;</label>
                 <input type="checkbox" id="15-years" name="15-years" onClick={this.handleChangeGradesList}/>
                 <label for="15-years">&nbsp; 15-Years &emsp;</label>
 
@@ -183,9 +183,9 @@ export class AddEventType extends Component {
                 <label for="gender">Gender: &nbsp;</label>
                 <select name="gender" id="gender" onChange={this.handleChangeGender}>
                     <option value="" selected disabled hidden> Select Gender...</option>
-                    <option value="male">Men</option>
-                    <option value="female">Ladies</option>
-                    <option value="mixed">Mixed</option>
+                    <option value="Men">Men</option>
+                    <option value="Ladies">Ladies</option>
+                    <option value="Mixed">Mixed</option>
                 </select>
 
                 <br/><br/>

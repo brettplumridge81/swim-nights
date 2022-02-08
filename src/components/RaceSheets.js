@@ -8,7 +8,8 @@ export class RaceSheets extends Component {
     this.state = { 
       raceSheets: [],
       eventTypes: [],
-      raceNightEvents: []
+      raceNightEvents: [],
+      swimmerNames: []
     };
   }
 
@@ -62,7 +63,23 @@ export class RaceSheets extends Component {
         });
   }
 
-  
+  produceGradesString(grades) {
+    var string = "";
+    string = string + grades[0];
+    for (var i = 1; i < grades.length - 1; i++) {
+        string = string + ", " + grades[i];
+    }
+    if (grades.length > 1) {
+        string = string + " & " + grades[grades.length - 1] + " grades";
+    } else {
+        if (grades[grades.length - 1] === "15-years") {
+            string = string + " & over";
+        } else {
+            string = string + "-grade";
+        }
+    }
+    return string;
+  }
 
   render() {
     return (
@@ -85,7 +102,7 @@ export class RaceSheets extends Component {
                 <tbody>
                   <tr>
                     <td colSpan="2" style={{ border: '0px' }}><strong>EVENT:</strong> {eventType.distance}m {eventType.stroke} </td>
-                    <td colSpan="2" style={{ border: '0px' }}><strong>GRADE:</strong> {eventType.minAge} - {eventType.maxAge} yrs </td>
+                    <td colSpan="2" style={{ border: '0px' }}><strong>GRADE:</strong> {this.produceGradesString(eventType.grades)} </td>
                   </tr>
                   <tr>
                     <td colSpan="1" style={{ border: '0px' }}><strong>EVENT No.:</strong>{raceSheet.eventNumber}</td>
@@ -120,20 +137,22 @@ export class RaceSheets extends Component {
                 </thead>
                 
                 <tbody>
-                  <tr>
-                    <td style={{ textAlign: 'center' }}>
-                      
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-
-                    </td>
-                    <td style={{ textAlign: 'center' }}>
-
-                    </td>
-                  </tr>
+                  { raceSheet.swimmerNames.map(function(currentSwimmer, count = 1) {
+                    return (<tr>
+                      <td style={{ textAlign: 'center', borderWidth: '1px', borderStyle: 'solid' }}>
+                        {currentSwimmer}
+                      </td>
+                      <td style={{ textAlign: 'center', borderWidth: '1px', borderStyle: 'solid' }}>
+                        {count+1}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {raceSheet.hcapTimes[0]}
+                      </td>
+                      <td style={{ textAlign: 'center' }}>
+                        {raceSheet.goAts[0]}
+                      </td>
+                    </tr>)
+                  }) }
                 </tbody>
               </table>
             </div>

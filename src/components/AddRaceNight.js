@@ -69,7 +69,7 @@ export class AddRaceNight extends Component {
             const newRaceEvent = {
                 raceEventId: uuidv4(),
                 eventTypeId: eventId,
-                swimmerIds: [],
+                swimmerNames: [],
                 resultIds: [],
                 date: this.state.raceDate,
                 eventNumber: eventNumber
@@ -113,8 +113,6 @@ export class AddRaceNight extends Component {
         var index = selectedEvents.indexOf(eventType);
         selectedEvents.splice(index, 1);
         var selectedEventIds = this.state.selectedEventTypeIds;
-        // var idIndex = selectedEventIds.indexOf(eventType.eventTypeId);
-        // selectedEventIds.splice(idIndex, 1);
         selectedEventIds.splice(index, 1);
         this.setState({ 
             selectedEventTypes: selectedEvents,
@@ -123,7 +121,6 @@ export class AddRaceNight extends Component {
     }
 
     handleMoveUp(eventType) {
-        console.log("Move up");
         var selectedEvents = this.state.selectedEventTypes;
         var index = selectedEvents.indexOf(eventType);
         if (index === 0) {
@@ -141,7 +138,6 @@ export class AddRaceNight extends Component {
     }
 
     handleMoveDown(eventType) {
-        console.log("Move down");
         var selectedEvents = this.state.selectedEventTypes;
         var index = selectedEvents.indexOf(eventType);
         if (index === selectedEvents.length) {
@@ -164,6 +160,24 @@ export class AddRaceNight extends Component {
         arr.splice(toIndex, 0, element);
     }
 
+    produceGradesString(grades) {
+        var string = "";
+        string = string + grades[0];
+        for (var i = 1; i < grades.length - 1; i++) {
+            string = string + ", " + grades[i];
+        }
+        if (grades.length > 1) {
+            string = string + " & " + grades[grades.length - 1] + " grades";
+        } else {
+            if (grades[grades.length - 1] === "15-years") {
+                string = string + " & over";
+            } else {
+                string = string + "-grade";
+            }
+        }
+        return string;
+    }
+
     render() {
         return (
             <div>
@@ -180,17 +194,19 @@ export class AddRaceNight extends Component {
                                     <table className="table table-striped" style={{ marginTop: 20 }}>
                                         <thead>
                                             <tr>
-                                            <th>Grades</th>
-                                            <th>Distance</th>
-                                            <th>Stroke</th>
-                                            <th></th>
+                                                <th>Grades</th>
+                                                <th>Gender</th>
+                                                <th>Distance</th>
+                                                <th>Stroke</th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {
                                                 this.state.eventTypes.map((currentEvent, i) => (
                                                     <tr>
-                                                        <td>{currentEvent.minGrade} - {currentEvent.maxGrade}</td>
+                                                        <td>{this.produceGradesString(currentEvent.grades)}</td>
+                                                        <td>{currentEvent.gender}</td>
                                                         <td>{currentEvent.distance}</td>
                                                         <td>{currentEvent.stroke}</td>
                                                         <td>
@@ -218,7 +234,8 @@ export class AddRaceNight extends Component {
                                             {
                                                 this.state.selectedEventTypes.map((currentEvent, i) => (
                                                     <tr style={{verticalAlign:'middle'}}>
-                                                        <td>{currentEvent.minGrade} - {currentEvent.maxGrade}</td>
+                                                        <td>{this.produceGradesString(currentEvent.grades)}</td>
+                                                        <td>{currentEvent.gender}</td>
                                                         <td>{currentEvent.distance}</td>
                                                         <td>{currentEvent.stroke}</td>
                                                         <td>

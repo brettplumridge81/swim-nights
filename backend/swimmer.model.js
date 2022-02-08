@@ -2,9 +2,6 @@
 const Schema = mongoose.Schema;
 
 let Swimmer = new Schema({
-    swimmerId: {
-        type: String
-    },
     name: {
         type: String
     },

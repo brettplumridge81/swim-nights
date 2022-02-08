@@ -221,7 +221,7 @@ fridayNightRacesRoutes.route('/raceevents/update/:id').post(function (req, res) 
         if (!raceEvent) {
             res.status(404).send("data is not found");
         } else {
-            raceEvent.swimmerIds = req.body[0].swimmerIds;
+            raceEvent.swimmerNames = req.body[0].swimmerNames;
             raceEvent.resultIds = req.body[0].resultIds;
 
             raceEvent.save()

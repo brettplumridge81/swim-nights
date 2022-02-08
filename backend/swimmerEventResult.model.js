@@ -5,7 +5,7 @@ let SwimmerEventResult = new Schema({
     swimmerEventResultId: {
         type: String
     },
-    swimmerId: {
+    swimmerName: {
         type: String
     },
     eventTypeId: {

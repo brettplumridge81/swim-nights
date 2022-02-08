@@ -8,7 +8,7 @@ export class Swimmers extends Component {
     super(props);
     this.state = { 
       swimmers: [],
-      selectedSwimmerId: "", 
+      selectedSwimmerName: "", 
       loading: true };
   }
 
@@ -20,13 +20,13 @@ export class Swimmers extends Component {
   handleSwimmerSelection(event) {
     console.log("SwimmerSelectEvent");
     console.log(event.target.value);
-    this.setState({ selectedSwimmerId: event.target.value });
-    console.log(this.state.selectedSwimmerId);
+    this.setState({ selectedSwimmerName: event.target.value });
+    console.log(this.state.selectedSwimmerName);
   }
 
   static renderSwimmers(swimmers) {
     return swimmers.map(function(swimmer) {
-      return <option value={swimmer.swimmerId}>{swimmer.name}</option>
+      return <option value={swimmer.swimmerName}>{swimmer.name}</option>
     });
   }
 

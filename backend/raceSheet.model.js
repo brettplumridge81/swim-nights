@@ -20,7 +20,7 @@ let RaceSheet = new Schema({
     heatNumber: {
         type: Number
     },
-    swimmerIds: {
+    swimmerNames: {
         type: [String]
     },
     hcapTimes: {

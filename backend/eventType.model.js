@@ -11,11 +11,8 @@ let EventType = new Schema({
     distance: {
         type: Number
     },
-    minGrade: {
-        type: String
-    },
-    maxGrade: {
-        type: String
+    grades: {
+        type: [String]
     },
     gender: {
         type: String

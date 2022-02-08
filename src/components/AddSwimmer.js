@@ -8,7 +8,6 @@ export class AddSwimmer extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            swimmerId: uuidv4(),
             name: "",
             gender: "",
             grade: ""
@@ -40,7 +39,6 @@ export class AddSwimmer extends Component {
         }
 
         const newSwimmer = {
-            swimmerId: this.state.swimmerId,
             name: this.state.name,
             gender: this.state.gender,
             grade: this.state.grade,
@@ -66,8 +64,8 @@ export class AddSwimmer extends Component {
                 <label for="gender">Gender: &nbsp;</label>
                 <select name="gender" id="gender" onChange={this.handleChangeGender}>
                     <option value="" selected disabled hidden> Select Gender...</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
+                    <option value="Men">Male</option>
+                    <option value="Ladies">Female</option>
                 </select>
 
                 &emsp;
@@ -75,11 +73,13 @@ export class AddSwimmer extends Component {
                 <label for="grade">Grade: &nbsp;</label>
                 <select name="grade" id="grade" onChange={this.handleChangeGrade}>
                     <option value="" selected disabled hidden> Select Grade...</option>
-                    <option value="e">E-Grade</option>
-                    <option value="d">D-Grade</option>
-                    <option value="c">C-Grade</option>
-                    <option value="b">B-Grade</option>
-                    <option value="a">A-Grade</option>
+                    <option value="Beginners">Beginners</option>
+                    <option value="E">E-Grade</option>
+                    <option value="D">D-Grade</option>
+                    <option value="C">C-Grade</option>
+                    <option value="B">B-Grade</option>
+                    <option value="A">A-Grade</option>
+                    <option value="15-years">15 Years &amp; Over</option>
                 </select>
 
                 <br/><br/>
