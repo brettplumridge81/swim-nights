@@ -277,6 +277,16 @@ fridayNightRacesRoutes.route('/currentselectedevents/delete/:id').get(function (
     });
 });
 
+fridayNightRacesRoutes.route('/racesheets/delete/:id').get(function (req, res) {
+    console.log("Delete Sheet");
+    let RaceSheet = require('./raceSheet.model');
+    RaceSheet.findByIdAndDelete({_id: req.params.id}, function(err, raceSheet){
+        console.log(req.params.id);
+        if(err) res.json(err);
+        else res.json('Successfully removed');
+    });
+});
+
 
 
 app.use('/fridaynightraces', fridayNightRacesRoutes);

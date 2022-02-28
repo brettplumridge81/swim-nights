@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
+import { UncontrolledTooltip } from 'reactstrap';
 
 export class EnterRaces extends Component {
     static displayName = EnterRaces.name;
@@ -108,14 +109,26 @@ export class EnterRaces extends Component {
       axios.get('http://localhost:4000/fridaynightraces/raceevents/')
         .then(response => {
           raceEvent = response.data.filter(x => x.raceEventId === raceEventId);
-          console.log("-----raceEvent-----");
-          console.log(raceEvent);
 
           if (!raceEvent[0].swimmerNames.includes(this.state.selectedSwimmerName)) {
             raceEvent[0].swimmerNames.push(this.state.selectedSwimmerName);
           }
 
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
+
+          // Clear the existing Race Sheets for this event
+          var raceSheetsForRaceEvent;
+          axios.get('http://localhost:4000/fridaynightraces/racesheets/')
+          .then(response => {
+            raceSheetsForRaceEvent = response.data.filter(x => x.raceEventId === raceEventId);
+
+            raceSheetsForRaceEvent.forEach(raceSheet => {
+              axios.get('http://localhost:4000/fridaynightraces/racesheets/delete/' + raceSheet._id);
+            });
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
 
           setTimeout(() => {
             this.generateRaceSheetsForEvent(this.state.eventIdsToEnter);
@@ -131,8 +144,6 @@ export class EnterRaces extends Component {
       axios.get('http://localhost:4000/fridaynightraces/raceevents/')
         .then(response => {
           raceEvent = response.data.filter(x => x.raceEventId === raceEventId);
-          console.log("-----     raceEvent     -----");
-          console.log(raceEvent);
 
           if (raceEvent[0].swimmerNames.includes(this.state.selectedSwimmerName)) {
             var index = raceEvent[0].swimmerNames.indexOf(this.state.selectedSwimmerName);
@@ -140,6 +151,20 @@ export class EnterRaces extends Component {
           }
   
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
+
+          // Clear the existing Race Sheets for this event
+          var raceSheetsForRaceEvent;
+          axios.get('http://localhost:4000/fridaynightraces/racesheets/')
+          .then(response => {
+            raceSheetsForRaceEvent = response.data.filter(x => x.raceEventId === raceEventId);
+
+            raceSheetsForRaceEvent.forEach(raceSheet => {
+              axios.get('http://localhost:4000/fridaynightraces/racesheets/delete/' + raceSheet._id);
+            });
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
 
           setTimeout(() => {
             this.generateRaceSheetsForEvent(this.state.eventIdsToWithdraw);
@@ -164,6 +189,9 @@ export class EnterRaces extends Component {
     var goAts = [];
 
     this.getRaceNightEventsData();
+
+    console.log("this.state.raceNightEvents");
+    console.log(this.state.raceNightEvents);
 
     setTimeout(() => {
       raceEventIds.forEach(raceEventId => {
@@ -195,7 +223,6 @@ export class EnterRaces extends Component {
                   hcapTime = parseInt(time);
                 }
               });
-              swimmerNames.push(swimmerName);
               hcapTimes.push(hcapTime);
             });
   
@@ -229,23 +256,21 @@ export class EnterRaces extends Component {
   }
 
   populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent) {
-    var swimmerCount = 0
     var numberOfSwimmers = swimmerNames.length;
     var swimmersPerHeat = parseInt(numberOfSwimmers / numberOfHeats);
+    var swimmerCount = swimmersPerHeat;
+
     for (var heatCount = 0; heatCount < numberOfHeats; heatCount++) {
       var heatSwimmerNames = [];
       var heatHcapTimes = [];
       var heatGoAts = [];
-
-      while (swimmersPerHeat % swimmerCount !== 0) {
-        heatSwimmerNames.push(swimmerNames[swimmerCount]);
-        heatHcapTimes.push(hcapTimes[swimmerCount]);
-        heatGoAts.push(goAts[swimmerCount]);
-        swimmerCount++;
+      
+      while (swimmerCount > 0) {
+        heatSwimmerNames.push(swimmerNames[swimmerCount - 1]);
+        heatHcapTimes.push(hcapTimes[swimmerCount - 1]);
+        heatGoAts.push(goAts[swimmerCount - 1]);
+        swimmerCount--;
       }
-
-      console.log("raceEvent");
-      console.log(raceEvent);
 
       const newRaceSheet = {
         raceSheetId: uuidv4(),
@@ -259,11 +284,13 @@ export class EnterRaces extends Component {
         goAts: heatGoAts
       }
 
-      console.log("newRaceSheet");
-      console.log(newRaceSheet);
-
       axios.post('http://localhost:4000/fridaynightraces/racesheets/add_racesheet', newRaceSheet);
     }
+
+    setTimeout(() => {
+      alert("Races Entered");
+      window.location.reload(false);
+    }, 1000);
   }
 
   isEntered(currentEvent) {

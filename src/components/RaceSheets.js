@@ -86,72 +86,95 @@ export class RaceSheets extends Component {
       this.state.raceSheets.map(raceSheet => {
         var eventType = this.state.eventTypes.filter(eventType => raceSheet.eventTypeId === eventType.eventTypeId)[0];
         var raceEvent = this.state.raceNightEvents.filter(raceEvent => raceSheet.raceEventId === raceEvent.raceEventId)[0];
-        console.log("raceSheet");
-        console.log(raceSheet);
-        console.log("eventType");
-        console.log(eventType);
-        console.log("raceEvent");
-        console.log(raceEvent);
+
+        var numSwimmers = raceSheet.swimmerNames.length;
+        var numUnusedLanes = 8 - numSwimmers;
+        var firstLane = Math.floor(numUnusedLanes / 2 + 1);
+        var lastLane = firstLane + numSwimmers - 1;
+
+        var swimmers = raceSheet.swimmerNames;
+        var hcaps = raceSheet.hcapTimes;
+        var goAts = raceSheet.goAts;
+        for (var count = 1; count < 9; count++) {
+          if (count < firstLane) {
+            swimmers.unshift("");
+            hcaps.unshift("");
+            goAts.unshift("");
+          }
+          if (count > lastLane) {
+            swimmers.push("");
+            hcaps.push("");
+            goAts.push("");
+          }
+        }
 
         if(eventType !== undefined && raceEvent !== undefined) {
           return (
             <div>
               <h1>Maitland Swimming Club Race Sheet</h1>
               
-              <table style={{ borderWidth: '0px', borderStyle: 'solid' }}>
+              <table>
                 <tbody>
                   <tr>
-                    <td colSpan="2" style={{ border: '0px' }}><strong>EVENT:</strong> {eventType.distance}m {eventType.stroke} </td>
-                    <td colSpan="2" style={{ border: '0px' }}><strong>GRADE:</strong> {this.produceGradesString(eventType.grades)} </td>
+                    <td colSpan="2"><strong>EVENT:</strong> {eventType.distance}m {eventType.stroke} </td>
+                    <td colSpan="2"><strong>GRADE:</strong> {this.produceGradesString(eventType.grades)} </td>
                   </tr>
                   <tr>
-                    <td colSpan="1" style={{ border: '0px' }}><strong>EVENT No.:</strong>{raceSheet.eventNumber}</td>
-                    <td colSpan="1" style={{ border: '0px' }}><strong>DISTANCE:</strong> {eventType.distance}m </td>
-                    <td colSpan="1" style={{ border: '0px' }}><strong>HEAT No.:</strong>{raceSheet.heatNumber}</td>
-                    <td colSpan="1" style={{ border: '0px' }}><strong>DATE:</strong> {raceSheet.date[0]}/{raceSheet.date[1]}/{raceSheet.date[2]} </td>
+                    <td colSpan="1"><strong>EVENT No.:</strong>{raceSheet.eventNumber}</td>
+                    <td colSpan="1"><strong>DISTANCE:</strong> {eventType.distance}m </td>
+                    <td colSpan="1"><strong>HEAT No.:</strong>{raceSheet.heatNumber}</td>
+                    <td colSpan="1"><strong>DATE:</strong> {raceSheet.date[0]}/{raceSheet.date[1]}/{raceSheet.date[2]} </td>
                   </tr>
                 </tbody>					
               </table>
                 
-              <table>
+              <table style={{ borderWidth: '2px', borderStyle: 'solid' }}>
                 <colgroup>
-                  <col span="1" style={{ width:'33%', align: 'center', borderWidth: '1px', borderStyle: 'solid' }} />
-                  <col span="1" style={{ width:'10%', align: 'center', borderWidth: '1px', borderStyle: 'solid' }} />
-                  <col span="1" style={{ width:'10%', align: 'center', borderWidth: '1px', borderStyle: 'solid' }} />
-                  <col span="1" style={{ width:'8%', align: 'center', borderWidth: '1px', borderStyle: 'solid' }} />
-                  <col span="1" style={{ width:'12%', align: 'center', borderWidth: '1px', borderStyle: 'solid' }} />
-                  <col span="1" style={{ width:'13%', align: 'center', borderWidth: '1px', borderStyle: 'solid' }} />
-                  <col span="1" style={{ width:'13%', align: 'center', borderWidth: '1px', borderStyle: 'solid' }} />
+                  <col span="1" style={{ width:'33%', align: 'center', borderWidth: '1px' }} />
+                  <col span="1" style={{ width:'10%', align: 'center', borderWidth: '1px' }} />
+                  <col span="1" style={{ width:'10%', align: 'center', borderWidth: '1px' }} />
+                  <col span="1" style={{ width:'8%', align: 'center', borderWidth: '1px' }} />
+                  <col span="1" style={{ width:'12%', align: 'center', borderWidth: '1px' }} />
+                  <col span="1" style={{ width:'13%', align: 'center', borderWidth: '1px' }} />
+                  <col span="1" style={{ width:'13%', align: 'center', borderWidth: '1px' }} />
                 </colgroup>
                 
                 <thead>
                   <tr height="30">
-                    <th style={{ textAlign: 'center' }}>NAME</th>
-                    <th style={{ textAlign: 'center' }}>LANE</th>
-                    <th style={{ textAlign: 'center' }}>H'CAP TIME</th>
-                    <th style={{ textAlign: 'center' }}>GO AT</th>
-                    <th style={{ textAlign: 'center' }}>PLACE</th>
-                    <th style={{ textAlign: 'center' }}>GROSS TIME</th>
-                    <th style={{ textAlign: 'center' }}>NET TIME</th>
+                    <th style={{ textAlign: 'center', borderWidth: '2px', borderStyle: 'solid' }}>NAME</th>
+                    <th style={{ textAlign: 'center', borderWidth: '2px', borderStyle: 'solid' }}>LANE</th>
+                    <th style={{ textAlign: 'center', borderWidth: '2px', borderStyle: 'solid' }}>H'CAP TIME</th>
+                    <th style={{ textAlign: 'center', borderWidth: '2px', borderStyle: 'solid' }}>GO AT</th>
+                    <th style={{ textAlign: 'center', borderWidth: '2px', borderStyle: 'solid' }}>PLACE</th>
+                    <th style={{ textAlign: 'center', borderWidth: '2px', borderStyle: 'solid' }}>GROSS TIME</th>
+                    <th style={{ textAlign: 'center', borderWidth: '2px', borderStyle: 'solid' }}>NET TIME</th>
                   </tr>
                 </thead>
                 
                 <tbody>
-                  { raceSheet.swimmerNames.map(function(currentSwimmer, count = 1) {
-                    return (<tr>
-                      <td style={{ textAlign: 'center', borderWidth: '1px', borderStyle: 'solid' }}>
-                        {currentSwimmer}
-                      </td>
-                      <td style={{ textAlign: 'center', borderWidth: '1px', borderStyle: 'solid' }}>
-                        {count+1}
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {raceSheet.hcapTimes[0]}
-                      </td>
-                      <td style={{ textAlign: 'center' }}>
-                        {raceSheet.goAts[0]}
-                      </td>
-                    </tr>)
+                  { raceSheet.swimmerNames.map(function(currentSwimmer, count) {
+                    return (
+                      <tr>
+                        <td style={{ textAlign: 'center', borderWidth: '1px' }}>
+                          {currentSwimmer}
+                        </td>
+                        <td style={{ textAlign: 'center', borderWidth: '1px' }}>
+                          {count+1}
+                        </td>
+                        <td style={{ textAlign: 'center', borderWidth: '1px' }}>
+                          {raceSheet.hcapTimes[count] === 10000 ? "TT" : raceSheet.hcapTimes[0]}
+                        </td>
+                        <td style={{ textAlign: 'center', borderWidth: '1px' }}>
+                          {raceSheet.goAts[count] === 0 ? "GO" : raceSheet.goAts[count]}
+                        </td>
+                        <td style={{ textAlign: 'center', borderWidth: '1px' }}>
+                        </td>
+                        <td style={{ textAlign: 'center', borderWidth: '1px' }}>
+                        </td>
+                        <td style={{ textAlign: 'center', borderWidth: '1px' }}>
+                        </td>
+                      </tr>
+                    )
                   }) }
                 </tbody>
               </table>
