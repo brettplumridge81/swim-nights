@@ -4,6 +4,9 @@ import { Home } from './components/Home';
 import { Create } from './components/Create';
 import { EnterRaces } from './components/EnterRaces';
 import { RaceSheets } from './components/RaceSheets';
+import { SwimmersList } from './components/SwimmersList';
+import { EventTypesList } from './components/EventTypesList';
+import { RaceNightsList } from './components/RaceNightsList';
 
 import './App.css';
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -33,6 +36,15 @@ export default class App extends Component {
                 <li className="navbar-item">
                   <Link to="/race-sheets" className="nav-link">Race Sheets</Link>
                 </li>
+                <li className="navbar-item">
+                  <Link to="/swimmers-list" className="nav-link">Swimmers</Link>
+                </li>
+                <li className="navbar-item">
+                  <Link to="/event-types-list" className="nav-link">Events Types</Link>
+                </li>
+                <li className="navbar-item">
+                  <Link to="/race-nights-list" className="nav-link">Race Nights</Link>
+                </li>
               </ul>
             </div>
           </nav>
@@ -41,6 +53,9 @@ export default class App extends Component {
           <Route path='/create' component={Create} />
           <Route path='/enter-races' component={EnterRaces} />
           <Route path='/race-sheets' component={RaceSheets} />
+          <Route path='/swimmers-list' component={SwimmersList} />
+          <Route path='/event-types-list' component={EventTypesList} />
+          <Route path='/race-nights-list' component={RaceNightsList} />
         </div>
       </Router>
     );
