@@ -105,6 +105,17 @@ fridayNightRacesRoutes.route('/racesheets').get(function (req, res) {
     });
 });
 
+fridayNightRacesRoutes.route('/results').get(function (req, res) {
+    let Result = require('./result.model');
+    Result.find(function (err, result) {
+        if (err) {
+            console.log(err);
+        } else {
+            res.json(result);
+        }
+    });
+});
+
 /*boreholeRoutes.route('/:id').get(function (req, res) {
     let id = req.params.id;
 
@@ -187,11 +198,24 @@ fridayNightRacesRoutes.route('/racesheets/add_racesheet').post(function (req, re
     let raceSheet = new RaceSheet(req.body);
     console.log(req.body);
     raceSheet.save()
-        .then(raceEvent => {
+        .then(raceSheet => {
             res.status(200).json({ 'raceSheet': 'raceSheet added successfully' });
         })
         .catch(err => {
             res.status(400).send('adding new raceSheet failed');
+        });
+});
+
+fridayNightRacesRoutes.route('/results/add_result').post(function (req, res) {
+    let Result = require('./result.model');
+    let result = new Result(req.body);
+    console.log(req.body);
+    result.save()
+        .then(result => {
+            res.status(200).json({ 'result': 'result added successfully' });
+        })
+        .catch(err => {
+            res.status(400).send('adding new result failed');
         });
 });
 
@@ -278,9 +302,17 @@ fridayNightRacesRoutes.route('/currentselectedevents/delete/:id').get(function (
 });
 
 fridayNightRacesRoutes.route('/racesheets/delete/:id').get(function (req, res) {
-    console.log("Delete Sheet");
     let RaceSheet = require('./raceSheet.model');
     RaceSheet.findByIdAndDelete({_id: req.params.id}, function(err, raceSheet){
+        console.log(req.params.id);
+        if(err) res.json(err);
+        else res.json('Successfully removed');
+    });
+});
+
+fridayNightRacesRoutes.route('/results/delete/:id').get(function (req, res) {
+    let Result = require('./result.model');
+    Result.findByIdAndDelete({_id: req.params.id}, function(err, result){
         console.log(req.params.id);
         if(err) res.json(err);
         else res.json('Successfully removed');

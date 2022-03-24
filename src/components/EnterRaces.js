@@ -152,6 +152,9 @@ export class EnterRaces extends Component {
   
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
 
+          // Delete the existing Result for this event for this swimmer
+          this.deleteResultsForEventForSwimmer(raceEventId, this.state.selectedSwimmerName);
+
           // Clear the existing Race Sheets for this event
           var raceSheetsForRaceEvent;
           axios.get('http://localhost:4000/fridaynightraces/racesheets/')
@@ -189,9 +192,6 @@ export class EnterRaces extends Component {
     var goAts = [];
 
     this.getRaceNightEventsData();
-
-    console.log("this.state.raceNightEvents");
-    console.log(this.state.raceNightEvents);
 
     setTimeout(() => {
       raceEventIds.forEach(raceEventId => {
@@ -285,12 +285,67 @@ export class EnterRaces extends Component {
       }
 
       axios.post('http://localhost:4000/fridaynightraces/racesheets/add_racesheet', newRaceSheet);
+
+      // Create Results for each swimmer for each event
+      for (var swimmerCount = 0; swimmerCount < heatSwimmerNames.length; swimmerCount++) {
+        this.createResultIfNotExists(raceEvent[0].raceEventId, heatSwimmerNames[swimmerCount], goAts[swimmerCount]);
+      }
     }
 
     setTimeout(() => {
       alert("Races Entered");
       window.location.reload(false);
-    }, 1000);
+    }, 2000);
+  }
+
+  deleteResultsForEventForSwimmer(raceEventId, swimmerName) {
+    console.log("deleteResultsForEventForSwimmer");
+    axios.get('http://localhost:4000/fridaynightraces/results')
+    .then(response => {
+      var result = response.data
+        .filter(x => x.raceEventId === raceEventId)
+        .filter(x => x.swimmerName === swimmerName);
+      if (result[0]?.resultId !== undefined) {
+        axios.get('http://localhost:4000/fridaynightraces/results/delete/' + result[0]._id);
+      }
+    })
+    .catch(function (error) {
+      console.log(error);
+    });
+  }
+
+  createResultIfNotExists(raceEventId, swimmerName, goAt) {
+    console.log("createResultIfNotExists");
+    axios.get('http://localhost:4000/fridaynightraces/results')
+    .then(response => {
+      console.log("response.data");
+      console.log(response.data);
+      let result = response.data
+        .filter(x => x.raceEventId === raceEventId)
+        .filter(x => x.swimmerName === swimmerName);
+      console.log("result");
+      console.log(result);
+      if (result.length > 0) {
+        return;
+      }
+
+      const newResult = {
+        resultId: uuidv4(),
+        raceEventId: raceEventId,
+        swimmerName: swimmerName,
+        goAt: goAt,
+        grossTime: undefined,
+        netTime: undefined,
+        place: undefined
+      }
+  
+      console.log("newResult");
+      console.log(newResult);
+      axios.post('http://localhost:4000/fridaynightraces/results/add_result', newResult);
+    })
+    .catch(function (error) {
+        console.log(error);
+    })
   }
 
   isEntered(currentEvent) {

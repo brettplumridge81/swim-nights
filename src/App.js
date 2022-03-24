@@ -7,6 +7,7 @@ import { RaceSheets } from './components/RaceSheets';
 import { SwimmersList } from './components/SwimmersList';
 import { EventTypesList } from './components/EventTypesList';
 import { RaceNightsList } from './components/RaceNightsList';
+import { RaceNightResultsInput } from './components/RaceNightResultsInput';
 
 import './App.css';
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -45,6 +46,9 @@ export default class App extends Component {
                 <li className="navbar-item">
                   <Link to="/race-nights-list" className="nav-link">Race Nights</Link>
                 </li>
+                <li className="navbar-item">
+                  <Link to="/race-night-results-input" className="nav-link">Race Night Result Input</Link>
+                </li>
               </ul>
             </div>
           </nav>
@@ -56,6 +60,7 @@ export default class App extends Component {
           <Route path='/swimmers-list' component={SwimmersList} />
           <Route path='/event-types-list' component={EventTypesList} />
           <Route path='/race-nights-list' component={RaceNightsList} />
+          <Route path='/race-night-results-input' component={RaceNightResultsInput} />
         </div>
       </Router>
     );

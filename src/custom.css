@@ -12,3 +12,24 @@ code {
   background-color: #1b6ec2;
   border-color: #1861ac;
 }
+
+.record_gross_time {
+ width: 200px;
+ text-align: center;
+}
+
+.record_gross_time input {
+  width: 90%;
+  text-align: center;
+}
+
+.record_place input {
+  width: 90%;
+  text-align: center;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

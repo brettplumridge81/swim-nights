@@ -5,8 +5,20 @@ let Result = new Schema({
     resultId: {
         type: String
     },
-    time: {
+    raceEventId: {
+        type: String
+    },
+    swimmerName: {
+        type: String
+    },
+    goAt: {
         type: Number
+    },
+    grossTime: {
+        type: [Number]
+    },
+    netTime: {
+        type: [Number]
     },
     place: {
         type: Number
