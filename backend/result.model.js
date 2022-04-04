@@ -22,6 +22,9 @@ let Result = new Schema({
     },
     place: {
         type: Number
+    },
+    points: {
+        type: Number
     }
 });
 

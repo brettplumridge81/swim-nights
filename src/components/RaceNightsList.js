@@ -125,40 +125,29 @@ export class RaceNightsList extends Component {
     this.setState({
       selectedRaceNightDate: raceNight.date,
       selectedRaceNightRaceEventIds: raceNight.raceEventIds
-    });
-
-    setTimeout(() => {
+    }, () => {
       axios.get('http://localhost:4000/fridaynightraces/raceEvents/')
       .then(response => {
+        console.log("Get Race Events");
         console.log(response.data);
         this.setState({ 
           eventTypeIds: response.data
             .filter(x => this.state.selectedRaceNightRaceEventIds.includes(x.raceEventId))
             .map(x => x.eventTypeId)
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        })
-      }, 100);
-
-      setTimeout(() => {
-        axios.get('http://localhost:4000/fridaynightraces/eventTypes/')
-        .then(response => {
-          console.log(response.data);
-          this.setState({ 
-            eventTypes: response.data
-              .filter(x => this.eventTypeIds.includes(x.eventTypeId))
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        })
-    
-        setTimeout(() => {
-          this.getEventTypesForSelectedRaceNight();
-        }, 100);
-      }, 100);
+          }, () => {
+            axios.get('http://localhost:4000/fridaynightraces/eventTypes/')
+            .then(response => {
+              console.log("Get Event Types");
+              console.log(response.data);
+              this.setState({ 
+                eventTypes: response.data
+                  .filter(x => this.state.eventTypeIds.includes(x.eventTypeId))
+              }, () => this.getEventTypesForSelectedRaceNight());
+            })
+          }
+        )
+      })
+    })
   }
 
   render() {

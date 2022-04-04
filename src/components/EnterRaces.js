@@ -108,13 +108,13 @@ export class EnterRaces extends Component {
     this.state.eventIdsToEnter.forEach(raceEventId => {
       axios.get('http://localhost:4000/fridaynightraces/raceevents/')
         .then(response => {
-          raceEvent = response.data.filter(x => x.raceEventId === raceEventId);
+          raceEvent = response.data.filter(x => x.raceEventId === raceEventId)[0];
 
-          if (!raceEvent[0].swimmerNames.includes(this.state.selectedSwimmerName)) {
-            raceEvent[0].swimmerNames.push(this.state.selectedSwimmerName);
+          if (!raceEvent.swimmerNames.includes(this.state.selectedSwimmerName)) {
+            raceEvent.swimmerNames.push(this.state.selectedSwimmerName);
           }
 
-          axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
+          axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent);
 
           // Clear the existing Race Sheets for this event
           var raceSheetsForRaceEvent;
@@ -153,7 +153,7 @@ export class EnterRaces extends Component {
           axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
 
           // Delete the existing Result for this event for this swimmer
-          this.deleteResultsForEventForSwimmer(raceEventId, this.state.selectedSwimmerName);
+          this.deleteResultsForEventForSwimmer(raceEvent[0], this.state.selectedSwimmerName);
 
           // Clear the existing Race Sheets for this event
           var raceSheetsForRaceEvent;
@@ -288,25 +288,30 @@ export class EnterRaces extends Component {
 
       // Create Results for each swimmer for each event
       for (var swimmerCount = 0; swimmerCount < heatSwimmerNames.length; swimmerCount++) {
-        this.createResultIfNotExists(raceEvent[0].raceEventId, heatSwimmerNames[swimmerCount], goAts[swimmerCount]);
+        this.createResultIfNotExists(raceEvent[0], heatSwimmerNames[swimmerCount], goAts[swimmerCount]);
       }
     }
 
-    setTimeout(() => {
-      alert("Races Entered");
-      window.location.reload(false);
-    }, 2000);
+    // setTimeout(() => {
+    //   alert("Races Entered");
+    //   window.location.reload(false);
+    // }, 2000);
   }
 
-  deleteResultsForEventForSwimmer(raceEventId, swimmerName) {
-    console.log("deleteResultsForEventForSwimmer");
+  deleteResultsForEventForSwimmer(raceEvent, swimmerName) {
     axios.get('http://localhost:4000/fridaynightraces/results')
     .then(response => {
       var result = response.data
-        .filter(x => x.raceEventId === raceEventId)
+        .filter(x => x.raceEventId === raceEvent.raceEventId)
         .filter(x => x.swimmerName === swimmerName);
+
       if (result[0]?.resultId !== undefined) {
         axios.get('http://localhost:4000/fridaynightraces/results/delete/' + result[0]._id);
+
+        // Remove the resultId from the Race Event
+        var index = raceEvent.resultIds.indexOf(result[0]?.resultId);
+        raceEvent.resultIds.splice(index, 1);
+        axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent);
       }
     })
     .catch(function (error) {
@@ -314,24 +319,19 @@ export class EnterRaces extends Component {
     });
   }
 
-  createResultIfNotExists(raceEventId, swimmerName, goAt) {
-    console.log("createResultIfNotExists");
+  createResultIfNotExists(raceEvent, swimmerName, goAt) {
     axios.get('http://localhost:4000/fridaynightraces/results')
     .then(response => {
-      console.log("response.data");
-      console.log(response.data);
       let result = response.data
-        .filter(x => x.raceEventId === raceEventId)
+        .filter(x => x.raceEventId === raceEvent.raceEventId)
         .filter(x => x.swimmerName === swimmerName);
-      console.log("result");
-      console.log(result);
       if (result.length > 0) {
         return;
       }
 
       const newResult = {
         resultId: uuidv4(),
-        raceEventId: raceEventId,
+        raceEventId: raceEvent.raceEventId,
         swimmerName: swimmerName,
         goAt: goAt,
         grossTime: undefined,
@@ -339,9 +339,10 @@ export class EnterRaces extends Component {
         place: undefined
       }
   
-      console.log("newResult");
-      console.log(newResult);
       axios.post('http://localhost:4000/fridaynightraces/results/add_result', newResult);
+
+      raceEvent.resultIds.push(newResult.resultId);
+      axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent);
     })
     .catch(function (error) {
         console.log(error);

@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+import { SwimmerResultInput } from './SwimmerResultInput';
 
 export class RaceNightResultsInput extends Component {
 
@@ -133,25 +134,36 @@ export class RaceNightResultsInput extends Component {
     //   }, 100);
   }
 
-  recordSwimmerResult = (raceEvent, currentSwimmer, place, time) => {
-    console.log("Swimmer Result Recorded");
-    console.log(raceEvent);
-    console.log(currentSwimmer);
-    console.log(place);
-    console.log(time);
+  
 
-
-  }
-
-  produceNetTime(minutes, seconds, hundredths, goAt) {
+  produceNetTime(minutes, seconds, hundredths, raceEventId, swimmerName) {
     if (minutes === undefined || seconds === undefined || hundredths === undefined) {
       return;
     }
 
-    var netTime = new Array(minutes, seconds, hundredths);
+    var result;
+    axios.get('http://localhost:4000/fridaynightraces/results/')
+      .then(response => {
+        result = response.data
+            .filter(x => x.raceEventId === raceEventId)
+            .filter(x => x.swimmerName === swimmerName)[0];
 
-    console.log(netTime);
-    return netTime;
+        console.log(result);
+
+        result.grossTime = new Array(minutes, seconds, hundredths);
+        result.netTime = new Array(
+          minutes - Math.floor(result.goAt / 60),
+          seconds - result.goAt % 60,
+          hundredths
+        )
+
+        console.log("result");
+        console.log(result);
+        return result.netTime;
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
   }
 
   produceGradesString(grades) {
@@ -175,64 +187,21 @@ export class RaceNightResultsInput extends Component {
   render() {
     return (
       this.state.raceNightEvents.map(raceEvent => {
-        console.log("raceEvent");
-        console.log(raceEvent);
-
-        // <div>
-        //   <h1>Race Night Results Input</h1>
-        //   <div>
-        //     {
-        //       this.state.raceNights.map((raceNight, i) => (
-        //         <div>
-        //           <label>
-        //             <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(raceNight)} />
-        //             {raceNight.date[0] + "/" + raceNight.date[1] + "/" + raceNight.date[2]}
-        //           </label>
-        //         </div>
-        //       ))
-        //     }
-        //   </div>
-        // </div>
-
-        // var eventType = this.state.eventTypes.filter(eventType => raceSheet.eventTypeId === eventType.eventTypeId)[0];
-        // var raceEvent = this.state.raceNightEvents.filter(raceEvent => raceSheet.raceEventId === raceEvent.raceEventId)[0];
-
-        // var numSwimmers = raceSheet.swimmerNames.length;
-        // var numUnusedLanes = 8 - numSwimmers;
-        // var firstLane = Math.floor(numUnusedLanes / 2 + 1);
-        // var lastLane = firstLane + numSwimmers - 1;
-
-        // var swimmers = raceSheet.swimmerNames;
-        // var hcaps = raceSheet.hcapTimes;
-        // var goAts = raceSheet.goAts;
-        // for (var count = 1; count < 9; count++) {
-        //   if (count < firstLane) {
-        //     swimmers.unshift("");
-        //     hcaps.unshift("");
-        //     goAts.unshift("");
-        //   }
-        //   if (count > lastLane) {
-        //     swimmers.push("");
-        //     hcaps.push("");
-        //     goAts.push("");
-        //   }
-        // }
-
         if(raceEvent !== undefined && raceEvent.swimmerNames.length !== 0) {
           return (
             <div>
-            <div>
+              <div>
                 <h2>Race Night Events</h2>
                 <h3>{raceEvent.eventNumber}</h3>
                   
                 <table style={{ borderWidth: '2px', borderStyle: 'solid' }}>
                   <colgroup>
-                    <col span="1" style={{ width:'50%', align: 'center', borderWidth: '1px' }} />
+                    <col span="1" style={{ width:'30%', align: 'center', borderWidth: '1px' }} />
                     <col span="1" style={{ width:'10%', align: 'center', borderWidth: '1px' }} />
                     <col span="1" style={{ width:'10%', align: 'center', borderWidth: '1px' }} />
                     <col span="1" style={{ width:'10%', align: 'center', borderWidth: '1px' }} />
                     <col span="1" style={{ width:'10%', align: 'center', borderWidth: '1px' }} />
-                    <col span="1" style={{ width:'10%', align: 'center', borderWidth: '1px' }} />
+                    <col span="1" style={{ width:'30%', align: 'center', borderWidth: '1px' }} />
                   </colgroup>
                   
                   <thead>
@@ -248,48 +217,9 @@ export class RaceNightResultsInput extends Component {
                     { 
                       raceEvent.swimmerNames.map((currentSwimmer) => {
                         return (
-                          <tr>
-                            <td style={{ textAlign: 'center', borderWidth: '1px' }}>
-                              {currentSwimmer}
-                            </td>
-                            <td style={{ textAlign: 'center', borderWidth: '1px' }}>
-                              <div class="record_place">
-                                <input type="number" id="place"></input>
-                              </div>
-                            </td>
-                            <td style={{ textAlign: 'center', borderWidth: '1px' }}>
-                              <div class="record_gross_time">
-                                <td><input type="number" id="gross_time_minutes"></input></td>
-                                <td>:</td>
-                                <td><input type="number" id="gross_time_seconds"></input></td>
-                                <td>.</td>
-                                <td>
-                                  <input type="number" id="gross_time_hundredths" 
-                                    onChange={() => this.produceNetTime(
-                                        document.getElementById("gross_time_minutes")?.value,
-                                        document.getElementById("gross_time_seconds")?.value,
-                                        document.getElementById("gross_time_hundredths")?.value,
-                                        
-                                      )}>
-                                  </input>
-                                </td>
-                              </div>
-                            </td>
-                            <td style={{ textAlign: 'center', borderWidth: '1px' }}>
-                              <input type="text"></input>
-                            </td>
-                            <td style={{ textAlign: 'center', borderWidth: '1px' }}>
-                              tick
-                            </td>
-                            <td style={{ textAlign: 'center', borderWidth: '1px' }}>
-                              <button onClick={() => this.recordSwimmerResult(raceEvent, currentSwimmer, 
-                                document.getElementById("place").value, document.getElementById("gross_time").value)}>
-                                  Record Result
-                              </button>
-                            </td>
-                          </tr>
+                          <SwimmerResultInput raceEventId={raceEvent.raceEventId} swimmerName={currentSwimmer} />
                         )
-                      }) 
+                      })
                     }
                   </tbody>
                 </table>

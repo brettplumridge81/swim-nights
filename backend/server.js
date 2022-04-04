@@ -209,6 +209,7 @@ fridayNightRacesRoutes.route('/racesheets/add_racesheet').post(function (req, re
 fridayNightRacesRoutes.route('/results/add_result').post(function (req, res) {
     let Result = require('./result.model');
     let result = new Result(req.body);
+    console.log("Add Result");
     console.log(req.body);
     result.save()
         .then(result => {
@@ -240,17 +241,65 @@ fridayNightRacesRoutes.route('/results/add_result').post(function (req, res) {
 
 fridayNightRacesRoutes.route('/raceevents/update/:id').post(function (req, res) {
     let RaceEvent = require('./raceEvent.model');
+    console.log("Race Event Update");
     console.log(req.body);
     RaceEvent.findById(req.params.id, function (err, raceEvent) {
         if (!raceEvent) {
             res.status(404).send("data is not found");
         } else {
-            raceEvent.swimmerNames = req.body[0].swimmerNames;
-            raceEvent.resultIds = req.body[0].resultIds;
+            raceEvent.swimmerNames = req.body.swimmerNames;
+            raceEvent.resultIds = req.body.resultIds;
 
             raceEvent.save()
                 .then(raceEvent => {
                     res.status(200).json({ 'raceEvent': 'raceEvent updated successfully' });
+                })
+                .catch(err => {
+                    res.status(400).send('updating raceEvent failed');
+                });
+        }
+        
+    });
+});
+
+fridayNightRacesRoutes.route('/raceevents/update').post(function (req, res) {
+    let RaceEvent = require('./raceEvent.model');
+    console.log("add_result");
+    console.log(req.body);
+    console.log(req.params);
+    console.log(req);
+    // RaceEvent.findOne({ resultId: req.params.id}, function (err, raceEvent) {
+    //     if (!raceEvent) {
+    //         res.status(404).send("data is not found");
+    //     } else {
+    //         raceEvent.resultIds.add(req.body);
+
+    //         raceEvent.save()
+    //             .then(raceEvent => {
+    //                 res.status(200).json({ 'raceEvent': 'raceEvent resultId added successfully' });
+    //             })
+    //             .catch(err => {
+    //                 res.status(400).send('updating raceEvent failed');
+    //             });
+    //     }
+        
+    // });
+});
+
+fridayNightRacesRoutes.route('/raceevents/remove_result').post(function (req, res) {
+    let RaceEvent = require('./raceEvent.model');
+    console.log("remove_result");
+    console.log(req.body);
+    RaceEvent.findOneAndUpdate(req.params.id, function (err, raceEvent) {
+        if (!raceEvent) {
+            res.status(404).send("data is not found");
+        } else {
+            var index = raceEvent.resultIds.indexOf(req.body);
+            raceEvent.resultIds.splice(index, 0);
+
+            raceEvent.save()
+                .then(raceEvent => {
+                    res.status(200).json({ 'raceEvent': 'raceEvent resultId added successfully' });
                 })
                 .catch(err => {
                     res.status(400).send('updating raceEvent failed');
@@ -277,6 +326,31 @@ fridayNightRacesRoutes.route('/swimmerEventResult/update/:id').post(function (re
                 })
                 .catch(err => {
                     res.status(400).send('updating swimmerEventResult failed');
+                });
+        }
+        
+    });
+});
+
+fridayNightRacesRoutes.route('/results/update/:id').post(function (req, res) {
+    let Result = require('./result.model');
+    console.log("Result Update");
+    console.log(req.body);
+    Result.findById(req.params.id, function (err, result) {
+        if (!result) {
+            res.status(404).send("data is not found");
+        } else {
+            result.grossTime = req.body.grossTime;
+            result.netTime = req.body.netTime;
+            result.place = req.body.place;
+            result.points = req.body.points;
+
+            result.save()
+                .then(result => {
+                    res.status(200).json({ 'Result': 'result updated successfully' });
+                })
+                .catch(err => {
+                    res.status(400).send('updating result failed');
                 });
         }
         
