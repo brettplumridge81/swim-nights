@@ -196,6 +196,7 @@ fridayNightRacesRoutes.route('/raceevents/add_raceevent').post(function (req, re
 fridayNightRacesRoutes.route('/racesheets/add_racesheet').post(function (req, res) {
     let RaceSheet = require('./raceSheet.model');
     let raceSheet = new RaceSheet(req.body);
+    console.log("New Race Sheet");
     console.log(req.body);
     raceSheet.save()
         .then(raceSheet => {

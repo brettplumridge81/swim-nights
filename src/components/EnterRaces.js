@@ -80,10 +80,24 @@ export class EnterRaces extends Component {
               .filter(x => x.date[1] === today.getMonth())
               .filter(x => x.date[2] === today.getFullYear())
           });
+        }).then(() => {
+          const blah0 = this.state.raceNightEvents;
+          console.log("Get Race Events 0");
+          console.log(blah0);
         })
         .catch(function (error) {
           console.log(error);
         });
+  }
+
+  handleSwimmerSelect(swimmer) {
+    this.setState({
+      selectedSwimmerName: swimmer.name,
+      selectedSwimmerGrade: swimmer.grade,
+      raceNightEventTypes: []
+    }, () => {
+      this.setRaceNightEvents();
+    });
   }
 
   setRaceNightEvents() {
@@ -96,6 +110,40 @@ export class EnterRaces extends Component {
         .filter(x => this.state.raceNight[0].raceEventIds.includes(x.eventTypeId))
         .filter(x => x.grades.includes(this.state.selectedSwimmerGrade))
     });
+  }
+
+  handleEventChecked(eventType) {
+    var raceEventId = this.state.raceNightEvents.filter(x => x.eventTypeId === eventType.eventTypeId)[0].raceEventId;
+
+    if (this.isEntered(eventType)) {
+      var idsToWithdraw = this.state.eventIdsToWithdraw;
+
+      if (!idsToWithdraw.includes(raceEventId)) {
+        idsToWithdraw.push(raceEventId);
+      } else {
+        var index = idsToWithdraw.indexOf(raceEventId);
+        idsToWithdraw.splice(index, 1);
+      }
+
+      this.setState({
+        eventIdsToWithdraw: idsToWithdraw
+      });
+
+    } else {
+      var idsToEnter = this.state.eventIdsToEnter;
+
+      if (!idsToEnter.includes(raceEventId)) {
+        idsToEnter.push(raceEventId);
+      } else {
+        var index = idsToEnter.indexOf(raceEventId);
+        idsToEnter.splice(index, 1);
+      }
+
+      this.setState({
+        eventIdsToEnter: idsToEnter
+      });
+
+    }
   }
 
   handleEnterRaces() {
@@ -114,11 +162,11 @@ export class EnterRaces extends Component {
             raceEvent.swimmerNames.push(this.state.selectedSwimmerName);
           }
 
-          axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent);
+          const addSwimmerToRaceEvent = axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent);
 
           // Clear the existing Race Sheets for this event
           var raceSheetsForRaceEvent;
-          axios.get('http://localhost:4000/fridaynightraces/racesheets/')
+          const clearRaceSheet = axios.get('http://localhost:4000/fridaynightraces/racesheets/')
           .then(response => {
             raceSheetsForRaceEvent = response.data.filter(x => x.raceEventId === raceEventId);
 
@@ -130,9 +178,9 @@ export class EnterRaces extends Component {
             console.log(error);
           });
 
-          setTimeout(() => {
+          Promise.all([addSwimmerToRaceEvent, clearRaceSheet]).then(() => {
             this.generateRaceSheetsForEvent(this.state.eventIdsToEnter);
-          }, 500);
+          });
         })
         .catch(function (error) {
           console.log(error);
@@ -143,21 +191,27 @@ export class EnterRaces extends Component {
     this.state.eventIdsToWithdraw.forEach(raceEventId => {
       axios.get('http://localhost:4000/fridaynightraces/raceevents/')
         .then(response => {
+          const blah = response.data
+          console.log("Get Race Events");
+          console.log(blah);
           raceEvent = response.data.filter(x => x.raceEventId === raceEventId);
 
           if (raceEvent[0].swimmerNames.includes(this.state.selectedSwimmerName)) {
             var index = raceEvent[0].swimmerNames.indexOf(this.state.selectedSwimmerName);
             raceEvent[0].swimmerNames.splice(index, 1);
           }
+
+          console.log("raceEvent");
+          console.log(raceEvent);
   
-          axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
+          const removeSwimmerFromRaceEvent = axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
 
           // Delete the existing Result for this event for this swimmer
           this.deleteResultsForEventForSwimmer(raceEvent[0], this.state.selectedSwimmerName);
 
           // Clear the existing Race Sheets for this event
           var raceSheetsForRaceEvent;
-          axios.get('http://localhost:4000/fridaynightraces/racesheets/')
+          const clearRaceSheet = axios.get('http://localhost:4000/fridaynightraces/racesheets/')
           .then(response => {
             raceSheetsForRaceEvent = response.data.filter(x => x.raceEventId === raceEventId);
 
@@ -169,9 +223,15 @@ export class EnterRaces extends Component {
             console.log(error);
           });
 
-          setTimeout(() => {
-            this.generateRaceSheetsForEvent(this.state.eventIdsToWithdraw);
-          }, 500);
+          Promise.all([removeSwimmerFromRaceEvent, clearRaceSheet]).then(() => {
+            const blah = this.getRaceNightEventsData();
+            Promise.all([blah]).then(() => {
+              const blah = this.state.raceNightEvents;
+              console.log("Get Race Events 0.5");
+              console.log(blah);
+              this.generateRaceSheetsForEvent(this.state.eventIdsToWithdraw);
+            });
+          });
         })
         .catch(function (error) {
           console.log(error);
@@ -185,74 +245,84 @@ export class EnterRaces extends Component {
   }
 
   generateRaceSheetsForEvent(raceEventIds) {
+    console.log("Here");
     var numberOfHeats;
     var swimmerNames = [];
     var raceEvent;
     var hcapTimes = [];
     var goAts = [];
 
-    this.getRaceNightEventsData();
+    // const promise1 = this.getRaceNightEventsData();
 
-    setTimeout(() => {
-      raceEventIds.forEach(raceEventId => {
-        raceEvent = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId);
-        swimmerNames = raceEvent[0].swimmerNames;
-
-        if (swimmerNames.length === 0) {
-          numberOfHeats = 0;
-        } else if (swimmerNames.length <= 7) {
-          numberOfHeats = 1;
-        } else {
-          numberOfHeats = swimmerNames.length !== 0 ? parseInt(swimmerNames.length / 6) : 0;
-        }
     
-        axios.get('http://localhost:4000/fridaynightraces/swimmereventresults/')
-          .then(response => {
-            var swimmerEventResults = response.data
-              .filter(x => swimmerNames.includes(x.swimmerName))
-              .filter(x => raceEvent.eventTypeId === x.eventTypeId);
+    raceEventIds.forEach(raceEventId => {
+      const blah2 = this.state.raceNightEvents;
+      console.log("Get Race Events 2");
+      console.log(blah2);
+
+      raceEvent = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId);
+      console.log("sdcsdcs");
+      console.log(raceEvent);
+      swimmerNames = raceEvent[0].swimmerNames;
+
+      if (swimmerNames.length === 0) {
+        numberOfHeats = 0;
+      } else if (swimmerNames.length <= 7) {
+        numberOfHeats = 1;
+      } else {
+        numberOfHeats = swimmerNames.length !== 0 ? parseInt(swimmerNames.length / 6) : 0;
+      }
   
-            // Store the swimmerNames and the hcapTimes
-            var lastThreeTimes;
-            var hcapTime;
-            swimmerNames.forEach(swimmerName => {
-              lastThreeTimes = swimmerEventResults.filter(x => x.swimmerName === swimmerName).slice(0, 3).map(x => x.recordedTime);
-              hcapTime = 10000;
-              lastThreeTimes.forEach(time => {
-                if (hcapTime === 10000 || parseInt(time) < hcapTime) {
-                  hcapTime = parseInt(time);
-                }
-              });
-              hcapTimes.push(hcapTime);
+      axios.get('http://localhost:4000/fridaynightraces/swimmereventresults/')
+        .then(response => {
+          var swimmerEventResults = response.data
+            .filter(x => swimmerNames.includes(x.swimmerName))
+            .filter(x => raceEvent.eventTypeId === x.eventTypeId);
+
+          // Store the swimmerNames and the hcapTimes
+          var lastThreeTimes;
+          var hcapTime;
+          swimmerNames.forEach(swimmerName => {
+            lastThreeTimes = swimmerEventResults.filter(x => x.swimmerName === swimmerName).slice(0, 3).map(x => x.recordedTime);
+            hcapTime = 10000;
+            lastThreeTimes.forEach(time => {
+              if (hcapTime === 10000 || parseInt(time) < hcapTime) {
+                hcapTime = parseInt(time);
+              }
             });
-  
-            // sort the hcapTimes and match the swimmerNames
-            for(var i = 0; i < hcapTimes.length; i++) {
-              for(var j = 0; j < hcapTimes.length; j++) {
-                if(hcapTimes[j] < hcapTimes[j+1]) {
-                  var temp = hcapTimes[j]
-                  hcapTimes[j] = hcapTimes[j+1]
-                  hcapTimes[j+1] = temp
-  
-                  temp = swimmerNames[j]
-                  swimmerNames[j] = swimmerNames[j+1]
-                  swimmerNames[j+1] = temp
-                }
+            hcapTimes.push(hcapTime);
+          });
+
+          // sort the hcapTimes and match the swimmerNames
+          for(var i = 0; i < hcapTimes.length; i++) {
+            for(var j = 0; j < hcapTimes.length; j++) {
+              if(hcapTimes[j] < hcapTimes[j+1]) {
+                var temp = hcapTimes[j]
+                hcapTimes[j] = hcapTimes[j+1]
+                hcapTimes[j+1] = temp
+
+                temp = swimmerNames[j]
+                swimmerNames[j] = swimmerNames[j+1]
+                swimmerNames[j+1] = temp
               }
             }
-            
-            // Calculate and store the goAts
-            hcapTimes.forEach(x => {
-              goAts.push(hcapTimes[0] - x);
-            });
-  
-            this.populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent);
-          })
-          .catch(function (error) {
-            console.log(error);
+          }
+          
+          // Calculate and store the goAts
+          hcapTimes.forEach(x => {
+            goAts.push(hcapTimes[0] - x);
           });
-      });
-    }, 500);
+
+          const blah3 = this.state.raceNightEvents;
+          console.log("Get Race Events 3");
+          console.log(blah3);
+          
+          this.populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent);
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    });
   }
 
   populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent) {
@@ -290,6 +360,10 @@ export class EnterRaces extends Component {
       for (var swimmerCount = 0; swimmerCount < heatSwimmerNames.length; swimmerCount++) {
         this.createResultIfNotExists(raceEvent[0], heatSwimmerNames[swimmerCount], goAts[swimmerCount]);
       }
+
+      const blah4 = this.state.raceNightEvents;
+      console.log("Get Race Events 4");
+      console.log(blah4);
     }
 
     // setTimeout(() => {
@@ -299,6 +373,8 @@ export class EnterRaces extends Component {
   }
 
   deleteResultsForEventForSwimmer(raceEvent, swimmerName) {
+    console.log("raceEvent1");
+    console.log(raceEvent);
     axios.get('http://localhost:4000/fridaynightraces/results')
     .then(response => {
       var result = response.data
@@ -311,8 +387,18 @@ export class EnterRaces extends Component {
         // Remove the resultId from the Race Event
         var index = raceEvent.resultIds.indexOf(result[0]?.resultId);
         raceEvent.resultIds.splice(index, 1);
+        console.log("raceEvent2");
+        console.log(raceEvent);
         axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent);
+        console.log("raceEvent3");
+        console.log(raceEvent);
       }
+    }).then(() => {
+      console.log("raceEvent4");
+      console.log(raceEvent);
+      const blah5 = this.state.raceNightEvents;
+      console.log("Get Race Events 5");
+      console.log(blah5);
     })
     .catch(function (error) {
       console.log(error);
@@ -342,7 +428,18 @@ export class EnterRaces extends Component {
       axios.post('http://localhost:4000/fridaynightraces/results/add_result', newResult);
 
       raceEvent.resultIds.push(newResult.resultId);
-      axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent);
+      console.log("raceEvent");
+      console.log(raceEvent);
+      axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent).then(() => {
+        this.getRaceNightEventsData();
+        const blah7 = this.state.raceNightEvents;
+        console.log("Get Race Events 7");
+        console.log(blah7);
+      });
+    }).then(() => {
+      const blah6 = this.state.raceNightEvents;
+      console.log("Get Race Events 6");
+      console.log(blah6);
     })
     .catch(function (error) {
         console.log(error);
@@ -356,52 +453,6 @@ export class EnterRaces extends Component {
     } else {
       return false;
     }
-  }
-
-  handleEventChecked(eventType) {
-    var raceEventId = this.state.raceNightEvents.filter(x => x.eventTypeId === eventType.eventTypeId)[0].raceEventId;
-
-    if (this.isEntered(eventType)) {
-      var idsToWithdraw = this.state.eventIdsToWithdraw;
-
-      if (!idsToWithdraw.includes(raceEventId)) {
-        idsToWithdraw.push(raceEventId);
-      } else {
-        var index = idsToWithdraw.indexOf(raceEventId);
-        idsToWithdraw.splice(index, 1);
-      }
-
-      this.setState({
-        eventIdsToWithdraw: idsToWithdraw
-      });
-
-    } else {
-      var idsToEnter = this.state.eventIdsToEnter;
-
-      if (!idsToEnter.includes(raceEventId)) {
-        idsToEnter.push(raceEventId);
-      } else {
-        var index = idsToEnter.indexOf(raceEventId);
-        idsToEnter.splice(index, 1);
-      }
-
-      this.setState({
-        eventIdsToEnter: idsToEnter
-      });
-
-    }
-  }
-
-  handleSwimmerSelect(swimmer) {
-    this.setState({
-      selectedSwimmerName: swimmer.name,
-      selectedSwimmerGrade: swimmer.grade,
-      raceNightEventTypes: []
-    });
-
-    setTimeout(() => {
-      this.setRaceNightEvents();
-    },50);
   }
 
   produceGradesString(grades) {
