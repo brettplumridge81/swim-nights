@@ -14,22 +14,13 @@ let EventType = new Schema({
     grades: {
         type: [String]
     },
-    gender: {
-        type: String
-    },
     isRelay: {
         type: Boolean
     },
     swimmersPerTeam: {
         type: Number
     },
-    isScratch: {
-        type: Boolean
-    },
     isEnterOwnHcapTime: {
-        type: Boolean
-    },
-    isNovalty: {
         type: Boolean
     }
 });

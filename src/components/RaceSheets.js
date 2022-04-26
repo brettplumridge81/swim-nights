@@ -84,6 +84,8 @@ export class RaceSheets extends Component {
   render() {
     return (
       this.state.raceSheets.map(raceSheet => {
+        console.log("raceSheet");
+        console.log(raceSheet);
         var eventType = this.state.eventTypes.filter(eventType => raceSheet.eventTypeId === eventType.eventTypeId)[0];
         var raceEvent = this.state.raceNightEvents.filter(raceEvent => raceSheet.raceEventId === raceEvent.raceEventId)[0];
 
@@ -162,7 +164,7 @@ export class RaceSheets extends Component {
                           {count+1}
                         </td>
                         <td style={{ textAlign: 'center', borderWidth: '1px' }}>
-                          {raceSheet.hcapTimes[count] === 10000 ? "TT" : raceSheet.hcapTimes[0]}
+                          {raceSheet.hcapTimes[count] === 10000 ? "TT" : raceSheet.hcapTimes[count]}
                         </td>
                         <td style={{ textAlign: 'center', borderWidth: '1px' }}>
                           {raceSheet.goAts[count] === 0 ? "GO" : raceSheet.goAts[count]}

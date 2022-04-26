@@ -20,7 +20,6 @@ export class AddRaceNight extends Component {
             selectedEventTypes: [],
             selectedEventTypeIds: [],
             date: today,
-            raceEvents: [],
             raceDate: dateValues,
             loading: true
         };
@@ -34,12 +33,10 @@ export class AddRaceNight extends Component {
     async getEventTypesData() {
         axios.get('http://localhost:4000/fridaynightraces/eventtypes/')
             .then(response => {
-                this.setState({ eventTypes: response.data });
-                this.setState({ loading: false });
-
-                var eventTypeIds = [];
-                this.state.eventTypes.forEach(x => eventTypeIds.push(x.eventTypeId));
-                this.setState({ eventTypeIds: eventTypeIds });
+                this.setState({
+                    eventTypes: response.data,
+                    loading: false
+                });
             })
             .catch(function (error) {
                 console.log(error);
@@ -56,15 +53,9 @@ export class AddRaceNight extends Component {
     }
 
     handleCreateRaceNight() {
-        console.log("CurrentEvents");
-        console.log(this.state.eventTypeIds);
-
-        const newRaceNight = {
-            date: this.state.raceDate,
-            raceEventIds: this.state.selectedEventTypeIds
-        }
-
         var eventNumber = 1;
+        var raceEvents = [];
+        
         this.state.selectedEventTypeIds.forEach(eventId => {
             const newRaceEvent = {
                 raceEventId: uuidv4(),
@@ -75,10 +66,16 @@ export class AddRaceNight extends Component {
                 eventNumber: eventNumber
             }
 
+            raceEvents.push(newRaceEvent);
             axios.post('http://localhost:4000/fridaynightraces/raceevents/add_raceevent', newRaceEvent);
 
             eventNumber++;
         });
+
+        const newRaceNight = {
+            date: this.state.raceDate,
+            raceEventIds: raceEvents.map(x => x.raceEventId)
+        };
 
         axios.post('http://localhost:4000/fridaynightraces/racenights/add_racenight', newRaceNight);
 

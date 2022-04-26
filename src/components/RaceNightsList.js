@@ -49,7 +49,7 @@ export class RaceNightsList extends Component {
       selectedRaceNightDate: [],
       selectedRaceNight: [],
       selectedRaceNightRaceEvents: [],
-      selectedRaceNightRaceEventIds: [],
+      selectedRaceNightEventTypes: [],
       eventTypeIds: [],
       eventTypes: []
     };
@@ -122,32 +122,37 @@ export class RaceNightsList extends Component {
   handleRaceNightSelect(raceNight) {
     console.log("raceNight");
     console.log(raceNight);
+    var raceEvents;
+
     this.setState({
-      selectedRaceNightDate: raceNight.date,
-      selectedRaceNightRaceEventIds: raceNight.raceEventIds
-    }, () => {
-      axios.get('http://localhost:4000/fridaynightraces/raceEvents/')
+      selectedRaceNightDate: raceNight.date
+    })
+
+    axios.get('http://localhost:4000/fridaynightraces/raceEvents/')
+    .then(response => {
+      console.log("Get Race Events");
+      console.log(response.data);
+      raceEvents = response.data.filter(x => raceNight.raceEventIds.includes(x.raceEventId));
+    })
+    .then(() => {
+      console.log("this.state.raceEvents");
+      console.log(this.state.raceEvents);
+    })
+    .then(() => {
+      axios.get('http://localhost:4000/fridaynightraces/eventTypes/')
       .then(response => {
-        console.log("Get Race Events");
+        console.log("Get Event Types");
         console.log(response.data);
         this.setState({ 
-          eventTypeIds: response.data
-            .filter(x => this.state.selectedRaceNightRaceEventIds.includes(x.raceEventId))
-            .map(x => x.eventTypeId)
-          }, () => {
-            axios.get('http://localhost:4000/fridaynightraces/eventTypes/')
-            .then(response => {
-              console.log("Get Event Types");
-              console.log(response.data);
-              this.setState({ 
-                eventTypes: response.data
-                  .filter(x => this.state.eventTypeIds.includes(x.eventTypeId))
-              }, () => this.getEventTypesForSelectedRaceNight());
-            })
-          }
-        )
+          eventTypes: response.data
+            .filter(x => raceEvents.map(x => x.eventTypeId).includes(x.eventTypeId))
+        });
       })
-    })
+      .then(() => {
+        console.log("this.state.eventTypes");
+        console.log(this.state.eventTypes);
+      });
+    });
   }
 
   render() {
