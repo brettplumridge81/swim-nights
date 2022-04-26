@@ -8,6 +8,9 @@ let Result = new Schema({
     raceEventId: {
         type: String
     },
+    eventTypeId: {
+        type: String
+    },
     swimmerName: {
         type: String
     },

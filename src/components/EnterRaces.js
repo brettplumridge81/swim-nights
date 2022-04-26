@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { UncontrolledTooltip } from 'reactstrap';
 
 export class EnterRaces extends Component {
     static displayName = EnterRaces.name;
 
-  constructor(props) {
+    storedResults;
+  
+    constructor(props) {
     super(props);
     this.state = { 
       eventTypes: [],
@@ -16,8 +17,7 @@ export class EnterRaces extends Component {
       swimmers: [],
       selectedSwimmerName: "",
       selectedSwimmerGrade: "",
-      eventIdsToEnter: [],
-      eventIdsToWithdraw: []
+      results: []
     };
 
     this.handleSwimmerSelect = this.handleSwimmerSelect.bind(this);
@@ -28,6 +28,7 @@ export class EnterRaces extends Component {
     this.populateEventTypesData();
     this.getRaceNight();
     this.getRaceNightEventsData();
+    this.getResultsDataForRaceNightEventsForSelectedSwimmer();
   }
 
   async populateSwimmers() {
@@ -80,14 +81,28 @@ export class EnterRaces extends Component {
               .filter(x => x.date[1] === today.getMonth())
               .filter(x => x.date[2] === today.getFullYear())
           });
-        }).then(() => {
-          const blah0 = this.state.raceNightEvents;
-          console.log("Get Race Events 0");
-          console.log(blah0);
         })
         .catch(function (error) {
           console.log(error);
         });
+  }
+
+  async getResultsDataForRaceNightEventsForSelectedSwimmer() {
+    axios.get('http://localhost:4000/fridaynightraces/results/')
+      .then(response => {
+        var raceEventIds = this.state.raceNightEvents.map(x => x.raceEventId);
+        var results = response.data
+          .filter(x => raceEventIds.includes(x.raceEventId))
+          .filter(x => x.swimmerName === this.state.selectedSwimmerName);
+        this.setState({
+          results: results
+        });
+        this.storedResults = new Array();
+        results.forEach(result => this.storedResults.push(result));
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   }
 
   handleSwimmerSelect(swimmer) {
@@ -97,6 +112,7 @@ export class EnterRaces extends Component {
       raceNightEventTypes: []
     }, () => {
       this.setRaceNightEvents();
+      this.getResultsDataForRaceNightEventsForSelectedSwimmer();
     });
   }
 
@@ -113,130 +129,66 @@ export class EnterRaces extends Component {
   }
 
   handleEventChecked(eventType) {
-    var raceEventId = this.state.raceNightEvents.filter(x => x.eventTypeId === eventType.eventTypeId)[0].raceEventId;
+    console.log("eventType");
+    console.log(eventType);
+
+    var raceEvent = this.state.raceNightEvents.filter(x => x.eventTypeId === eventType.eventTypeId)[0];
 
     if (this.isEntered(eventType)) {
-      var idsToWithdraw = this.state.eventIdsToWithdraw;
-
-      if (!idsToWithdraw.includes(raceEventId)) {
-        idsToWithdraw.push(raceEventId);
-      } else {
-        var index = idsToWithdraw.indexOf(raceEventId);
-        idsToWithdraw.splice(index, 1);
-      }
-
-      this.setState({
-        eventIdsToWithdraw: idsToWithdraw
-      });
-
+      var index = raceEvent.swimmerNames.indexOf(this.state.selectedSwimmerName);
+      raceEvent.swimmerNames.splice(index, 1);
+      this.removeResult(raceEvent, this.state.selectedSwimmerName);
     } else {
-      var idsToEnter = this.state.eventIdsToEnter;
-
-      if (!idsToEnter.includes(raceEventId)) {
-        idsToEnter.push(raceEventId);
-      } else {
-        var index = idsToEnter.indexOf(raceEventId);
-        idsToEnter.splice(index, 1);
-      }
-
-      this.setState({
-        eventIdsToEnter: idsToEnter
-      });
-
+      raceEvent.swimmerNames.push(this.state.selectedSwimmerName);
+      this.addResult(raceEvent, eventType, this.state.selectedSwimmerName);
     }
   }
 
+  addResult(raceEvent, eventType, swimmerName) {
+    var results = this.state.results;
+
+    const newResult = {
+      resultId: uuidv4(),
+      raceEventId: raceEvent.raceEventId,
+      eventTypeId: eventType.eventTypeId,
+      swimmerName: swimmerName,
+      goAt: undefined,
+      grossTime: undefined,
+      netTime: undefined,
+      place: undefined,
+      points: undefined
+    }
+
+    results.push(newResult);
+    
+    raceEvent.resultIds.push(newResult.resultId);
+  }
+
+  removeResult(raceEvent, swimmerName) {
+    var results = this.state.results;
+    
+    var resultId = results
+      .filter(x => x.raceEventId === raceEvent.raceEventId)
+      .filter(x => x.swimmerName === swimmerName)
+      .map(x => x.resultId)[0];
+
+    var index = results.map(x => x.resultId).indexOf(resultId);
+    results.splice(index, 1);
+
+    index = raceEvent.resultIds.indexOf(resultId);
+    raceEvent.resultIds.splice(index, 1);
+  }
+
   handleEnterRaces() {
-    console.log("this.state.eventIdsToEnter");
-    console.log(this.state.eventIdsToEnter);
-    console.log("this.state.eventIdsToWithdraw");
-    console.log(this.state.eventIdsToWithdraw);
-    // Enter selected events
-    var raceEvent;
-    this.state.eventIdsToEnter.forEach(raceEventId => {
-      axios.get('http://localhost:4000/fridaynightraces/raceevents/')
-        .then(response => {
-          raceEvent = response.data.filter(x => x.raceEventId === raceEventId)[0];
+    this.storeUpdatedRaceEvents(this.state.raceNightEvents);
 
-          if (!raceEvent.swimmerNames.includes(this.state.selectedSwimmerName)) {
-            raceEvent.swimmerNames.push(this.state.selectedSwimmerName);
-          }
-
-          const addSwimmerToRaceEvent = axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent);
-
-          // Clear the existing Race Sheets for this event
-          var raceSheetsForRaceEvent;
-          const clearRaceSheet = axios.get('http://localhost:4000/fridaynightraces/racesheets/')
-          .then(response => {
-            raceSheetsForRaceEvent = response.data.filter(x => x.raceEventId === raceEventId);
-
-            raceSheetsForRaceEvent.forEach(raceSheet => {
-              axios.get('http://localhost:4000/fridaynightraces/racesheets/delete/' + raceSheet._id);
-            });
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-
-          Promise.all([addSwimmerToRaceEvent, clearRaceSheet]).then(() => {
-            this.generateRaceSheetsForEvent(this.state.eventIdsToEnter);
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+    this.deleteResults(this.state.results).then(() => {
+      this.storeResults(this.state.results);
     });
 
-    // Withdraw from deselected events
-    this.state.eventIdsToWithdraw.forEach(raceEventId => {
-      axios.get('http://localhost:4000/fridaynightraces/raceevents/')
-        .then(response => {
-          const blah = response.data
-          console.log("Get Race Events");
-          console.log(blah);
-          raceEvent = response.data.filter(x => x.raceEventId === raceEventId);
-
-          if (raceEvent[0].swimmerNames.includes(this.state.selectedSwimmerName)) {
-            var index = raceEvent[0].swimmerNames.indexOf(this.state.selectedSwimmerName);
-            raceEvent[0].swimmerNames.splice(index, 1);
-          }
-
-          console.log("raceEvent");
-          console.log(raceEvent);
-  
-          const removeSwimmerFromRaceEvent = axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent[0]._id, raceEvent);
-
-          // Delete the existing Result for this event for this swimmer
-          this.deleteResultsForEventForSwimmer(raceEvent[0], this.state.selectedSwimmerName);
-
-          // Clear the existing Race Sheets for this event
-          var raceSheetsForRaceEvent;
-          const clearRaceSheet = axios.get('http://localhost:4000/fridaynightraces/racesheets/')
-          .then(response => {
-            raceSheetsForRaceEvent = response.data.filter(x => x.raceEventId === raceEventId);
-
-            raceSheetsForRaceEvent.forEach(raceSheet => {
-              axios.get('http://localhost:4000/fridaynightraces/racesheets/delete/' + raceSheet._id);
-            });
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-
-          Promise.all([removeSwimmerFromRaceEvent, clearRaceSheet]).then(() => {
-            const blah = this.getRaceNightEventsData();
-            Promise.all([blah]).then(() => {
-              const blah = this.state.raceNightEvents;
-              console.log("Get Race Events 0.5");
-              console.log(blah);
-              this.generateRaceSheetsForEvent(this.state.eventIdsToWithdraw);
-            });
-          });
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-      });
+    this.removeActiveRaceSheets(this.state.raceNightEvents.map(x => x.raceEventId)).then(() => {
+      this.generateRaceSheetsForEvents(this.state.raceNightEvents);
+    });
 
     // setTimeout(() => {
     //   alert("Races Entered");
@@ -244,211 +196,173 @@ export class EnterRaces extends Component {
     // }, 1000);
   }
 
-  generateRaceSheetsForEvent(raceEventIds) {
-    console.log("Here");
-    var numberOfHeats;
-    var swimmerNames = [];
-    var raceEvent;
-    var hcapTimes = [];
-    var goAts = [];
+  async storeUpdatedRaceEvents(raceEvents) {
+    raceEvents.forEach(raceEvent => {
+      axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent)
+      .catch(function (error) {
+        console.log(error);
+      });
+    });
+  }
 
-    // const promise1 = this.getRaceNightEventsData();
-
-    
-    raceEventIds.forEach(raceEventId => {
-      const blah2 = this.state.raceNightEvents;
-      console.log("Get Race Events 2");
-      console.log(blah2);
-
-      raceEvent = this.state.raceNightEvents.filter(x => x.raceEventId === raceEventId);
-      console.log("sdcsdcs");
-      console.log(raceEvent);
-      swimmerNames = raceEvent[0].swimmerNames;
-
-      if (swimmerNames.length === 0) {
-        numberOfHeats = 0;
-      } else if (swimmerNames.length <= 7) {
-        numberOfHeats = 1;
-      } else {
-        numberOfHeats = swimmerNames.length !== 0 ? parseInt(swimmerNames.length / 6) : 0;
-      }
-  
-      axios.get('http://localhost:4000/fridaynightraces/swimmereventresults/')
-        .then(response => {
-          var swimmerEventResults = response.data
-            .filter(x => swimmerNames.includes(x.swimmerName))
-            .filter(x => raceEvent.eventTypeId === x.eventTypeId);
-
-          // Store the swimmerNames and the hcapTimes
-          var lastThreeTimes;
-          var hcapTime;
-          swimmerNames.forEach(swimmerName => {
-            lastThreeTimes = swimmerEventResults.filter(x => x.swimmerName === swimmerName).slice(0, 3).map(x => x.recordedTime);
-            hcapTime = 10000;
-            lastThreeTimes.forEach(time => {
-              if (hcapTime === 10000 || parseInt(time) < hcapTime) {
-                hcapTime = parseInt(time);
-              }
-            });
-            hcapTimes.push(hcapTime);
-          });
-
-          // sort the hcapTimes and match the swimmerNames
-          for(var i = 0; i < hcapTimes.length; i++) {
-            for(var j = 0; j < hcapTimes.length; j++) {
-              if(hcapTimes[j] < hcapTimes[j+1]) {
-                var temp = hcapTimes[j]
-                hcapTimes[j] = hcapTimes[j+1]
-                hcapTimes[j+1] = temp
-
-                temp = swimmerNames[j]
-                swimmerNames[j] = swimmerNames[j+1]
-                swimmerNames[j+1] = temp
-              }
-            }
-          }
-          
-          // Calculate and store the goAts
-          hcapTimes.forEach(x => {
-            goAts.push(hcapTimes[0] - x);
-          });
-
-          const blah3 = this.state.raceNightEvents;
-          console.log("Get Race Events 3");
-          console.log(blah3);
-          
-          this.populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent);
-        })
+  async deleteResults(results) {
+    var resultsToDelete = this.storedResults.filter(result => !results.includes(result));
+    resultsToDelete.forEach(result => {
+      axios.get('http://localhost:4000/fridaynightraces/results/delete/' + result._id)
         .catch(function (error) {
           console.log(error);
         });
     });
   }
 
+  async storeResults(results) {
+    var resultsToCreate = results.filter(result => !this.storedResults.includes(result));
+    resultsToCreate.forEach(result => {
+      axios.post('http://localhost:4000/fridaynightraces/results/add_result', result)
+        .catch(function (error) {
+          console.log(error);
+        });
+    })
+  }
+
+  async removeActiveRaceSheets(raceEventIds) {
+    var raceSheet_Ids = [];
+    await axios.get('http://localhost:4000/fridaynightraces/racesheets/')
+      .then(response => {
+        raceSheet_Ids = response.data
+          .filter(x => raceEventIds.includes(x.raceEventId))
+          .map(x => x._id);
+      })
+      .then(() => {
+        // Delete race sheets
+        raceSheet_Ids.forEach(_id => axios.get('http://localhost:4000/fridaynightraces/raceSheets/delete/' + _id));
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
+  }
+
+  generateRaceSheetsForEvents(raceEvents) {
+    var numberOfHeats;
+    var swimmerNames = [];
+    var hcapTimes = [];
+    var goAts = [];
+
+    raceEvents.forEach(raceEvent => {
+      console.log("raceEvent");
+      console.log(raceEvent);
+
+      var swimmers = [];
+      axios.get('http://localhost:4000/fridaynightraces/swimmers/')
+      .then(response => {
+        swimmers = response.data.filter(x => raceEvent.swimmerNames.includes(x.name));
+      }).then(() => {
+        // console.log("swimmers");
+        // console.log(swimmers);
+
+        if (swimmers.length === 0) {
+          numberOfHeats = 0;
+        } else if (swimmerNames.length <= 7) {
+          numberOfHeats = 1;
+        } else {
+          numberOfHeats = swimmerNames.length !== 0 ? parseInt(swimmerNames.length / 6) : 0;
+        }
+
+        var swimmerSheetObjects = [];
+        swimmers.forEach(swimmer => {
+          var index = swimmer.eventTypeIds.indexOf(raceEvent.eventTypeId);
+          swimmerSheetObjects.push([swimmer.name, swimmer.hCapTimes[index]]);
+        });
+
+        swimmerSheetObjects.sort((a, b) => (a[1] > b[1]) ? -1 : 1);
+        // console.log(swimmerSheetObjects);
+
+        swimmerNames = swimmerSheetObjects.map(x => x[0]);
+        hcapTimes = swimmerSheetObjects.map(x => x[1]);
+        // console.log(hcapTimes);
+
+        hcapTimes.forEach(x => {
+          goAts.push(hcapTimes[0] - x);
+        });
+
+        this.populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+    });
+  }
+
   populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent) {
+    console.log(swimmerNames);
+    console.log(hcapTimes);
+    console.log(goAts);
+    console.log(numberOfHeats);
+    console.log(raceEvent);
+
     var numberOfSwimmers = swimmerNames.length;
     var swimmersPerHeat = parseInt(numberOfSwimmers / numberOfHeats);
-    var swimmerCount = swimmersPerHeat;
+    var swimmerCount = 0;
 
     for (var heatCount = 0; heatCount < numberOfHeats; heatCount++) {
       var heatSwimmerNames = [];
       var heatHcapTimes = [];
       var heatGoAts = [];
       
-      while (swimmerCount > 0) {
-        heatSwimmerNames.push(swimmerNames[swimmerCount - 1]);
-        heatHcapTimes.push(hcapTimes[swimmerCount - 1]);
-        heatGoAts.push(goAts[swimmerCount - 1]);
-        swimmerCount--;
+      while (swimmerCount < swimmersPerHeat) {
+        heatSwimmerNames.push(swimmerNames[swimmerCount]);
+        heatHcapTimes.push(hcapTimes[swimmerCount]);
+        heatGoAts.push(goAts[swimmerCount]);
+        swimmerCount++;
       }
 
       const newRaceSheet = {
         raceSheetId: uuidv4(),
-        date: raceEvent[0].date,
-        raceEventId: raceEvent[0].raceEventId,
-        eventTypeId: raceEvent[0].eventTypeId,
-        eventNumber: raceEvent[0].eventNumber,
+        date: raceEvent.date,
+        raceEventId: raceEvent.raceEventId,
+        eventTypeId: raceEvent.eventTypeId,
+        eventNumber: raceEvent.eventNumber,
         heatNumber: heatCount + 1,
         swimmerNames: heatSwimmerNames,
         hcapTimes: heatHcapTimes,
         goAts: heatGoAts
       }
 
-      axios.post('http://localhost:4000/fridaynightraces/racesheets/add_racesheet', newRaceSheet);
-
-      // Create Results for each swimmer for each event
-      for (var swimmerCount = 0; swimmerCount < heatSwimmerNames.length; swimmerCount++) {
-        this.createResultIfNotExists(raceEvent[0], heatSwimmerNames[swimmerCount], goAts[swimmerCount]);
-      }
-
-      const blah4 = this.state.raceNightEvents;
-      console.log("Get Race Events 4");
-      console.log(blah4);
+      axios.post('http://localhost:4000/fridaynightraces/racesheets/add_racesheet', newRaceSheet)
+      .catch(function (error) {
+        console.log(error);
+      });
     }
 
-    // setTimeout(() => {
-    //   alert("Races Entered");
-    //   window.location.reload(false);
-    // }, 2000);
+    this.updateGoAtsInResults(raceEvent, swimmerNames, goAts);
   }
 
-  deleteResultsForEventForSwimmer(raceEvent, swimmerName) {
-    console.log("raceEvent1");
-    console.log(raceEvent);
-    axios.get('http://localhost:4000/fridaynightraces/results')
-    .then(response => {
-      var result = response.data
-        .filter(x => x.raceEventId === raceEvent.raceEventId)
-        .filter(x => x.swimmerName === swimmerName);
+  updateGoAtsInResults(raceEvent, swimmerNames, goAts) {
+    var raceEventResults = [];
+    axios.get('http://localhost:4000/fridaynightraces/results/')
+      .then(response => {
+        raceEventResults = response.data.filter(x => x.raceEventId === raceEvent.raceEventId);
+      })
+      .then(() => {
+        for (var i = 0; i < swimmerNames.length; i++) {
+          raceEventResults.filter(result => result.swimmerName === swimmerNames[i])[0].goAt = goAts[i];
+        }
 
-      if (result[0]?.resultId !== undefined) {
-        axios.get('http://localhost:4000/fridaynightraces/results/delete/' + result[0]._id);
-
-        // Remove the resultId from the Race Event
-        var index = raceEvent.resultIds.indexOf(result[0]?.resultId);
-        raceEvent.resultIds.splice(index, 1);
-        console.log("raceEvent2");
-        console.log(raceEvent);
-        axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent);
-        console.log("raceEvent3");
-        console.log(raceEvent);
-      }
-    }).then(() => {
-      console.log("raceEvent4");
-      console.log(raceEvent);
-      const blah5 = this.state.raceNightEvents;
-      console.log("Get Race Events 5");
-      console.log(blah5);
-    })
-    .catch(function (error) {
-      console.log(error);
-    });
-  }
-
-  createResultIfNotExists(raceEvent, swimmerName, goAt) {
-    axios.get('http://localhost:4000/fridaynightraces/results')
-    .then(response => {
-      let result = response.data
-        .filter(x => x.raceEventId === raceEvent.raceEventId)
-        .filter(x => x.swimmerName === swimmerName);
-      if (result.length > 0) {
-        return;
-      }
-
-      const newResult = {
-        resultId: uuidv4(),
-        raceEventId: raceEvent.raceEventId,
-        swimmerName: swimmerName,
-        goAt: goAt,
-        grossTime: undefined,
-        netTime: undefined,
-        place: undefined
-      }
-  
-      axios.post('http://localhost:4000/fridaynightraces/results/add_result', newResult);
-
-      raceEvent.resultIds.push(newResult.resultId);
-      console.log("raceEvent");
-      console.log(raceEvent);
-      axios.post('http://localhost:4000/fridaynightraces/raceevents/update/' + raceEvent._id, raceEvent).then(() => {
-        this.getRaceNightEventsData();
-        const blah7 = this.state.raceNightEvents;
-        console.log("Get Race Events 7");
-        console.log(blah7);
-      });
-    }).then(() => {
-      const blah6 = this.state.raceNightEvents;
-      console.log("Get Race Events 6");
-      console.log(blah6);
-    })
-    .catch(function (error) {
+        raceEventResults.forEach(result => {
+          axios.post('http://localhost:4000/fridaynightraces/results/update/' + result._id, result)
+            .catch(function (error) {
+              console.log(error);
+            });
+        });
+      })
+      .catch(function (error) {
         console.log(error);
-    })
+      });
   }
 
   isEntered(currentEvent) {
-    var raceEvent = this.state.raceNightEvents.filter(x => x.eventTypeId === currentEvent.eventTypeId);
-    if (raceEvent[0].swimmerNames.includes(this.state.selectedSwimmerName)) {
+    var raceEvent = this.state.raceNightEvents.filter(x => x.eventTypeId === currentEvent.eventTypeId)[0];
+    if (raceEvent.swimmerNames.includes(this.state.selectedSwimmerName)) {
       return true;
     } else {
       return false;
@@ -480,7 +394,7 @@ export class EnterRaces extends Component {
           <h3>Swimmers</h3>
           <div>
             {
-              this.state.swimmers.map((swimmer, i) => (
+              this.state.swimmers.map((swimmer) => (
                 <div>
                   <label>
                     <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
@@ -503,7 +417,7 @@ export class EnterRaces extends Component {
               </thead>
               <tbody>
                 {
-                  this.state.raceNightEventTypes.map((currentEvent, i) => (
+                  this.state.raceNightEventTypes.map((currentEvent) => (
                     <tr>
                       <td>{this.produceGradesString(currentEvent.grades)}</td>
                       <td>{currentEvent.distance}</td>

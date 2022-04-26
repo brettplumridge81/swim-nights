@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
 import "react-datepicker/dist/react-datepicker.css";
 
 export class SwimmerResultInput extends Component {
@@ -10,6 +9,7 @@ export class SwimmerResultInput extends Component {
 
         this.state = {
             raceEventId: props.raceEventId,
+            eventTypeId: props.eventTypeId,
             swimmerName: props.swimmerName,
             result: undefined,
             grossMinutes: undefined,
@@ -97,8 +97,53 @@ export class SwimmerResultInput extends Component {
             result: result,
             points: result.points
         }, () => {
-            axios.post('http://localhost:4000/fridaynightraces/results/update/' + result._id, result);
+            axios.post('http://localhost:4000/fridaynightraces/results/update/' + result._id, result)
+                .catch(function (error) {
+                    console.log(error);
+                });
         });
+
+        // Update best time and calculate new hCap time
+        axios.get('http://localhost:4000/fridaynightraces/swimmers/')
+            .then(response => {
+                var swimmer = response.data.filter(x => x.name === this.state.swimmerName)[0];
+
+                var index = swimmer.eventTypeIds.indexOf(this.state.eventTypeId);
+                if (index === -1) {
+                    index = 0;
+                    swimmer.eventTypeIds[index] = this.state.eventTypeId;
+                }
+
+                var bestTime = swimmer.bestTimes[index];
+                var netTimeHundredths = result.netTime[0] * 6000 + result.netTime[1] * 100 + result.netTime[2];
+                var bestTimeHundredths = bestTime !== undefined ? bestTime[0] * 6000 + bestTime[1] * 100 + bestTime[2] : 0;
+
+                if (netTimeHundredths > bestTimeHundredths) {
+                    swimmer.bestTimes[index] = result.netTime;
+                }
+
+                axios.get('http://localhost:4000/fridaynightraces/results/')
+                .then(response => {
+                    var results = response.data
+                        .filter(x => x.swimmerName === this.state.swimmerName)
+                        .filter(x => x.eventTypeId === this.state.eventTypeId);
+
+                    var lastThreeTimes = results.slice(0, 3).map(x => x.netTime[0] * 60 + x.netTime[1] + (x.netTime[2] >= 50 ? 1 : 0));
+                    var hcapTime = 10000;
+                    lastThreeTimes.forEach(time => {
+                        if (hcapTime === 10000 || parseInt(time) < hcapTime) {
+                            hcapTime = parseInt(time);
+                        }
+                    });
+                    swimmer.hCapTimes[index] = hcapTime;
+                })
+                .then(() => {
+                    axios.post('http://localhost:4000/fridaynightraces/swimmers/update/' + swimmer._id, swimmer)
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                });
+            })
     }
 
     recordSwimmerDQ() {
@@ -117,7 +162,10 @@ export class SwimmerResultInput extends Component {
             grossHundredths: undefined,
             netTime: [undefined, undefined, undefined]
         }, () => {
-            axios.post('http://localhost:4000/fridaynightraces/results/update/' + result._id, result);
+            axios.post('http://localhost:4000/fridaynightraces/results/update/' + result._id, result)
+            .catch(function (error) {
+                console.log(error);
+            });
         });
     }
 
@@ -136,7 +184,10 @@ export class SwimmerResultInput extends Component {
             grossSeconds: undefined,
             grossHundredths: undefined
         }, () => {
-            axios.post('http://localhost:4000/fridaynightraces/results/update/' + result._id, result);
+            axios.post('http://localhost:4000/fridaynightraces/results/update/' + result._id, result)
+            .catch(function (error) {
+                console.log(error);
+            });
         });
     }
 

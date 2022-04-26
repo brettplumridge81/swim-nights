@@ -13,6 +13,15 @@ let Swimmer = new Schema({
     },
     points: {
         type: Number
+    },
+    eventTypeIds: {
+        type: [String]
+    },
+    bestTimes: {
+        type: [[Number]]
+    },
+    hCapTimes: {
+        type: [Number]
     }
 });
 

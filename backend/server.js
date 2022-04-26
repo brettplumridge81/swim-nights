@@ -238,7 +238,31 @@ fridayNightRacesRoutes.route('/results/add_result').post(function (req, res) {
 
 
 
+fridayNightRacesRoutes.route('/swimmers/update/:id').post(function (req, res) {
+    let Swimmer = require('./swimmer.model');
+    console.log("Swimmer Update");
+    console.log(req.body);
+    Swimmer.findById(req.params.id, function (err, swimmer) {
+        if (!swimmer) {
+            res.status(404).send("data is not found");
+        } else {
+            swimmer.grade = req.body.grade;
+            swimmer.points = req.body.points;
+            swimmer.eventTypeIds = req.body.eventTypeIds;
+            swimmer.bestTimes = req.body.bestTimes;
+            swimmer.hCapTimes = req.body.hCapTimes;
 
+            swimmer.save()
+                .then(swimmer => {
+                    res.status(200).json({ 'swimmer': 'swimmer updated successfully' });
+                })
+                .catch(err => {
+                    res.status(400).send('updating swimmer failed');
+                });
+        }
+        
+    });
+});
 
 fridayNightRacesRoutes.route('/raceevents/update/:id').post(function (req, res) {
     let RaceEvent = require('./raceEvent.model');
@@ -345,6 +369,7 @@ fridayNightRacesRoutes.route('/results/update/:id').post(function (req, res) {
             result.netTime = req.body.netTime;
             result.place = req.body.place;
             result.points = req.body.points;
+            result.goAt = req.body.goAt;
 
             result.save()
                 .then(result => {
@@ -378,6 +403,7 @@ fridayNightRacesRoutes.route('/currentselectedevents/delete/:id').get(function (
 
 fridayNightRacesRoutes.route('/racesheets/delete/:id').get(function (req, res) {
     let RaceSheet = require('./raceSheet.model');
+    console.log("Delete RaceSheet");
     RaceSheet.findByIdAndDelete({_id: req.params.id}, function(err, raceSheet){
         console.log(req.params.id);
         if(err) res.json(err);
@@ -387,6 +413,7 @@ fridayNightRacesRoutes.route('/racesheets/delete/:id').get(function (req, res) {
 
 fridayNightRacesRoutes.route('/results/delete/:id').get(function (req, res) {
     let Result = require('./result.model');
+    console.log("Delete Result");
     Result.findByIdAndDelete({_id: req.params.id}, function(err, result){
         console.log(req.params.id);
         if(err) res.json(err);

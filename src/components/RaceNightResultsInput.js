@@ -217,7 +217,8 @@ export class RaceNightResultsInput extends Component {
                     { 
                       raceEvent.swimmerNames.map((currentSwimmer) => {
                         return (
-                          <SwimmerResultInput raceEventId={raceEvent.raceEventId} swimmerName={currentSwimmer} />
+                          <SwimmerResultInput raceEventId={raceEvent.raceEventId} 
+                            eventTypeId={raceEvent.eventTypeId} swimmerName={currentSwimmer} />
                         )
                       })
                     }
