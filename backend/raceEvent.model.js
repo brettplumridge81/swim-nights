@@ -11,6 +11,18 @@ let RaceEvent = new Schema({
     swimmerNames: {
         type: [String]
     },
+    grades: {
+        type: [String]
+    },
+    isRelay: {
+        type: Boolean
+    },
+    swimmersPerTeam: {
+        type: Number
+    },
+    isEnterOwnHcapTime: {
+        type: Boolean
+    },
     resultIds: {
         type: [String]
     },

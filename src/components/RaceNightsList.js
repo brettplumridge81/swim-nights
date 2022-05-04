@@ -2,17 +2,15 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import { AddRaceNight } from './AddRaceNight';
 
-const EventType = props => (
+const RaceEvent = props => (
   <tr>
-    <td>{props.eventType.stroke}</td>
-    <td>{props.eventType.distance}</td>
-    <td>{produceGradesString(props.eventType.grades)}</td>
-    <td>{props.eventType.gender}</td>
-    <td>{props.eventType.isRelay}</td>
-    <td>{props.eventType.swimmersPerTeam}</td>
-    <td>{props.eventType.isScratch}</td>
-    <td>{props.eventType.isEnterOwnHcapTime}</td>
-    <td>{props.eventType.isNovalty}</td>
+    <td>{props.raceEvent.stroke}</td>
+    <td>{props.raceEvent.distance}</td>
+    <td>{produceGradesString(props.raceEvent.grades)}</td>
+    <td>{props.raceEvent.gender}</td>
+    <td>{props.raceEvent.isRelay}</td>
+    <td>{props.raceEvent.swimmersPerTeam}</td>
+    <td>{props.raceEvent.isEnterOwnHcapTime}</td>
     {/* <td>
       <button onClick={() => { handleDelete(props.eventType._id); }}>Remove</button>
     </td> */}
@@ -51,7 +49,7 @@ export class RaceNightsList extends Component {
       selectedRaceNightRaceEvents: [],
       selectedRaceNightEventTypes: [],
       eventTypeIds: [],
-      eventTypes: []
+      raceEvents: []
     };
   }
 
@@ -113,9 +111,9 @@ export class RaceNightsList extends Component {
     })
   }
 
-  eventTypesListForRaceNight() {
-    return this.state.eventTypes.map(function(currentEventType, i) {
-        return <EventType eventType={currentEventType} key={i} />
+  raceEventsList() {
+    return this.state.raceEvents.map(function(currentRaceEvent, i) {
+        return <RaceEvent raceEvent={currentRaceEvent} key={i} />
     });
   }
 
@@ -185,17 +183,14 @@ export class RaceNightsList extends Component {
                   <th>Stroke</th>
                   <th>Distance</th>
                   <th>Grades</th>
-                  <th>Gender</th>
                   <th>IsRelay</th>
                   <th>SwimmersPerTeam</th>
-                  <th>IsScratch</th>
                   <th>IsEnterOwnHcapTime</th>
-                  <th>IsNovalty</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody>
-                { this.eventTypesListForRaceNight() }
+                { this.raceEventsList() }
               </tbody>
             </table>
             </div>

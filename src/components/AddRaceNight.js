@@ -191,8 +191,6 @@ export class AddRaceNight extends Component {
                                     <table className="table table-striped" style={{ marginTop: 20 }}>
                                         <thead>
                                             <tr>
-                                                <th>Grades</th>
-                                                <th>Gender</th>
                                                 <th>Distance</th>
                                                 <th>Stroke</th>
                                                 <th></th>

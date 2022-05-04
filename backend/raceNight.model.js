@@ -7,7 +7,7 @@ let RaceNight = new Schema({
     },
     raceEventIds: {
         type: [String]
-    }
+    },
 });
 
 module.exports = mongoose.model('RaceNight', RaceNight);

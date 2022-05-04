@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import { v4 as uuidv4 } from 'uuid';
-import "react-datepicker/dist/react-datepicker.css";
+import { SwimmerGender } from './SwimmerGender';
 
 export class AddSwimmer extends Component {
 
@@ -10,11 +9,15 @@ export class AddSwimmer extends Component {
         this.state = {
             name: "",
             gender: "",
+            dob: [0, 0, 0],
             grade: ""
         };
 
         this.handleChangeName = this.handleChangeName.bind(this);
         this.handleChangeGender = this.handleChangeGender.bind(this);
+        this.handleChangeDobDay = this.handleChangeDobDay.bind(this);
+        this.handleChangeDobMonth = this.handleChangeDobMonth.bind(this);
+        this.handleChangeDobYear = this.handleChangeDobYear.bind(this);
         this.handleChangeGrade = this.handleChangeGrade.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
@@ -24,25 +27,62 @@ export class AddSwimmer extends Component {
     }
 
     handleChangeGender(event) {
-        this.setState({ gender: event.target.value });
+        this.setState({ gender: SwimmerGender[SwimmerGender[event.target.value]] });
+    }
+
+    handleChangeDobDay(event) {
+        var dob = this.state.dob;
+        dob[0] = event.target.value;
+        if (dob[0] < 1 || dob[0] > 31) {
+            dob[0] = 0;
+        }
+        this.setState({ dob: dob })
+    }
+
+    handleChangeDobMonth(event) {
+        var dob = this.state.dob;
+        dob[1] = event.target.value;
+        if (dob[1] < 1 || dob[1] > 12) {
+            dob[1] = 0;
+        }
+        this.setState({ dob: dob })
+    }
+
+    handleChangeDobYear(event) {
+        console.log(event.target.value);
+        var dob = this.state.dob;
+        dob[2] = event.target.value;
+        console.log(dob);
+        if (dob[2] < 1900 || dob[2] > new Date().getFullYear()) {
+            dob[2] = 0;
+        }
+        this.setState({ dob : dob });
     }
 
     handleChangeGrade(event) {
-        this.setState({ grade: event.target.value });       
+        var gender = SwimmerGender[event.target.value];
+        console.log("gender");
+        console.log(gender);
+        this.setState({ grade: gender });       
     }
 
     handleSubmit(event) {
         event.preventDefault();
 
-        if (this.state.name === "" || this.state.gender === "" || this.state.grade === "") {
+        if (this.state.name === "" || this.state.gender === "" || this.state.dob[0] === 0 || 
+                this.state.dob[1] === 0 || this.state.dob[2] === 0 || this.state.grade === "") {
             return;
         }
 
         const newSwimmer = {
             name: this.state.name,
             gender: this.state.gender,
+            dob: this.state.dob,
             grade: this.state.grade,
-            points: 0
+            points: 0,
+            eventTypeIds: [],
+            bestTimes: [],
+            hCapTimes: []
         }
 
         axios.post('http://localhost:4000/fridaynightraces/swimmers/add_swimmer', newSwimmer);
@@ -64,9 +104,18 @@ export class AddSwimmer extends Component {
                 <label for="gender">Gender: &nbsp;</label>
                 <select name="gender" id="gender" onChange={this.handleChangeGender}>
                     <option value="" selected disabled hidden> Select Gender...</option>
-                    <option value="Men">Male</option>
-                    <option value="Ladies">Female</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
                 </select>
+
+                &emsp;
+
+                <label>
+                    DOB:&emsp;
+                    <input type="number" name="dob_day" id="dob_day" onChange={this.handleChangeDobDay} style={{ width: '50px', textAlign: 'center' }} />
+                    <input type="number" name="dob_month" id="dob_month" onChange={this.handleChangeDobMonth} style={{ width: '50px', textAlign: 'center' }} />
+                    <input type="number" name="dob_year" id="dob_year" onChange={this.handleChangeDobYear} style={{ width: '50px', textAlign: 'center' }} />
+                </label>
 
                 &emsp;
 
