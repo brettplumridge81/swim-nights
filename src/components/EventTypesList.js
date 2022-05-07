@@ -6,13 +6,6 @@ const EventType = props => (
   <tr>
     <td>{props.eventType.stroke}</td>
     <td>{props.eventType.distance}</td>
-    <td>{produceGradesString(props.eventType.grades)}</td>
-    <td>{props.eventType.gender}</td>
-    <td>{props.eventType.isRelay}</td>
-    <td>{props.eventType.swimmersPerTeam}</td>
-    <td>{props.eventType.isScratch}</td>
-    <td>{props.eventType.isEnterOwnHcapTime}</td>
-    <td>{props.eventType.isNovalty}</td>
     <td>
       <button onClick={() => { handleDelete(props.eventType._id); }}>Remove</button>
     </td>
@@ -22,23 +15,23 @@ const EventType = props => (
   </tr>
 )
 
-const produceGradesString = (grades) => {
-  var string = "";
-  string = string + grades[0];
-  for (var i = 1; i < grades.length - 1; i++) {
-      string = string + ", " + grades[i];
-  }
-  if (grades.length > 1) {
-      string = string + " & " + grades[grades.length - 1] + " grades";
-  } else {
-      if (grades[grades.length - 1] === "15-years") {
-          string = string + " & over";
-      } else {
-          string = string + "-grade";
-      }
-  }
-  return string;
-}
+// const produceGradesString = (grades) => {
+//   var string = "";
+//   string = string + grades[0];
+//   for (var i = 1; i < grades.length - 1; i++) {
+//       string = string + ", " + grades[i];
+//   }
+//   if (grades.length > 1) {
+//       string = string + " & " + grades[grades.length - 1] + " grades";
+//   } else {
+//       if (grades[grades.length - 1] === "15-years") {
+//           string = string + " & over";
+//       } else {
+//           string = string + "-grade";
+//       }
+//   }
+//   return string;
+// }
 
 const handleDelete = (id) => {
   try {
@@ -88,13 +81,6 @@ export class EventTypesList extends Component {
               <tr>
                 <th>Stroke</th>
                 <th>Distance</th>
-                <th>Grades</th>
-                <th>Gender</th>
-                <th>IsRelay</th>
-                <th>SwimmersPerTeam</th>
-                <th>IsScratch</th>
-                <th>IsEnterOwnHcapTime</th>
-                <th>IsNovalty</th>
                 <th></th>
               </tr>
             </thead>

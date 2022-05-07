@@ -60,10 +60,7 @@ export class AddSwimmer extends Component {
     }
 
     handleChangeGrade(event) {
-        var gender = SwimmerGender[event.target.value];
-        console.log("gender");
-        console.log(gender);
-        this.setState({ grade: gender });       
+        this.setState({ grade: event.target.value });       
     }
 
     handleSubmit(event) {
@@ -101,27 +98,25 @@ export class AddSwimmer extends Component {
 
                 &emsp;
 
-                <label for="gender">Gender: &nbsp;</label>
-                <select name="gender" id="gender" onChange={this.handleChangeGender}>
-                    <option value="" selected disabled hidden> Select Gender...</option>
+                <label>Gender: &nbsp;</label>
+                <select defaultValue={'DEFAULT'} onChange={this.handleChangeGender}>
+                    <option value="DEFAULT" disabled hidden> Select Gender...</option>
                     <option value="Male">Male</option>
                     <option value="Female">Female</option>
                 </select>
 
                 &emsp;
 
-                <label>
-                    DOB:&emsp;
-                    <input type="number" name="dob_day" id="dob_day" onChange={this.handleChangeDobDay} style={{ width: '50px', textAlign: 'center' }} />
-                    <input type="number" name="dob_month" id="dob_month" onChange={this.handleChangeDobMonth} style={{ width: '50px', textAlign: 'center' }} />
-                    <input type="number" name="dob_year" id="dob_year" onChange={this.handleChangeDobYear} style={{ width: '50px', textAlign: 'center' }} />
-                </label>
+                <label>DOB:&emsp;</label>
+                <input type="number" name="dob_day" id="dob_day" onChange={this.handleChangeDobDay} style={{ width: '50px', textAlign: 'center' }} />
+                <input type="number" name="dob_month" id="dob_month" onChange={this.handleChangeDobMonth} style={{ width: '50px', textAlign: 'center' }} />
+                <input type="number" name="dob_year" id="dob_year" onChange={this.handleChangeDobYear} style={{ width: '50px', textAlign: 'center' }} />
 
                 &emsp;
 
-                <label for="grade">Grade: &nbsp;</label>
-                <select name="grade" id="grade" onChange={this.handleChangeGrade}>
-                    <option value="" selected disabled hidden> Select Grade...</option>
+                <label>Grade: &nbsp;</label>
+                <select defaultValue={'DEFAULT'} onChange={this.handleChangeGrade}>
+                    <option value="DEFAULT" disabled hidden> Select Grade...</option>
                     <option value="Beginners">Beginners</option>
                     <option value="E">E-Grade</option>
                     <option value="D">D-Grade</option>

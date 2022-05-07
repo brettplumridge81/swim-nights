@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import { Home } from './components/Home';
-import { Create } from './components/Create';
+import { CreateRaceNight } from './components/CreateRaceNight';
 import { EnterRaces } from './components/EnterRaces';
 import { RaceSheets } from './components/RaceSheets';
 import { SwimmersList } from './components/SwimmersList';
@@ -29,7 +29,7 @@ export default class App extends Component {
                   <Link to="/" className="nav-link">Home</Link>
                 </li>
                 <li className="navbar-item">
-                  <Link to="/create" className="nav-link">Create</Link>
+                  <Link to="/create-race-night" className="nav-link">Create Race Night</Link>
                 </li>
                 <li className="navbar-item">
                   <Link to="/enter-races" className="nav-link">Enter Races</Link>
@@ -54,7 +54,7 @@ export default class App extends Component {
           </nav>
           <br/>
           <Route exact path='/' component={Home} />
-          <Route path='/create' component={Create} />
+          <Route path='/create-race-night' component={CreateRaceNight} />
           <Route path='/enter-races' component={EnterRaces} />
           <Route path='/race-sheets' component={RaceSheets} />
           <Route path='/swimmers-list' component={SwimmersList} />

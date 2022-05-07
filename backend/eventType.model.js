@@ -10,18 +10,6 @@ let EventType = new Schema({
     },
     distance: {
         type: Number
-    },
-    grades: {
-        type: [String]
-    },
-    isRelay: {
-        type: Boolean
-    },
-    swimmersPerTeam: {
-        type: Number
-    },
-    isEnterOwnHcapTime: {
-        type: Boolean
     }
 });
 
