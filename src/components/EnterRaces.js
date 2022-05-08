@@ -271,11 +271,12 @@ export class EnterRaces extends Component {
         var swimmerSheetObjects = [];
         swimmers.forEach(swimmer => {
           var index = swimmer.eventTypeIds.indexOf(raceEvent.eventTypeId);
-          swimmerSheetObjects.push([swimmer.name, swimmer.hCapTimes[index]]);
+          swimmerSheetObjects.push([swimmer.name, swimmer.hCapTimes[index] !== null ? swimmer.hcapTimes[index] : 10000]);
         });
 
         swimmerSheetObjects.sort((a, b) => (a[1] > b[1]) ? -1 : 1);
-        // console.log(swimmerSheetObjects);
+        console.log("swimmerSheetObjects");
+        console.log(swimmerSheetObjects);
 
         swimmerNames = swimmerSheetObjects.map(x => x[0]);
         hcapTimes = swimmerSheetObjects.map(x => x[1]);
@@ -294,11 +295,11 @@ export class EnterRaces extends Component {
   }
 
   populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent) {
-    console.log(swimmerNames);
-    console.log(hcapTimes);
-    console.log(goAts);
-    console.log(numberOfHeats);
-    console.log(raceEvent);
+    // console.log(swimmerNames);
+    // console.log(hcapTimes);
+    // console.log(goAts);
+    // console.log(numberOfHeats);
+    // console.log(raceEvent);
 
     var numberOfSwimmers = swimmerNames.length;
     var swimmersPerHeat = parseInt(numberOfSwimmers / numberOfHeats);

@@ -103,11 +103,9 @@ export class CreateRaceNight extends Component {
   addRaceEvent() {
     const newRaceEvent = {
       raceEventId: uuidv4(),
-      eventTypeId: this.state.selectedEventType,
+      eventTypeId: this.state.selectedEventType.eventTypeId,
       swimmerNames: [],
       grades: this.state.grades,
-      isRelay: this.state.isRelay,
-      isEnterOwnHcapTime: this.state.isEnterOwnHcapTime,
       resultIds: [],
       date: this.state.date,
       eventNumber: undefined
@@ -141,6 +139,7 @@ export class CreateRaceNight extends Component {
   }
 
   render() {
+    console.log(this.state.raceEvents);
     return (
       <div>
         <div>
@@ -199,19 +198,25 @@ export class CreateRaceNight extends Component {
               </tr>
             </thead>
             <tbody>
-              { this.state.raceEvents.map((raceEvent) => {
-                this.state.eventTypes.filter(x => x.eventTypeId === raceEvent.eventTypeId).map(eventType => {
+              { this.state.raceEvents.map((raceEvent) => (
+                // console.log("this.state.eventTypes");
+                // console.log(this.state.eventTypes);
+                // console.log("raceEvent");
+                // console.log(raceEvent);
+                this.state.eventTypes.filter(x => x.eventTypeId === raceEvent.eventTypeId).map((eventType) => (
+                  // console.log("eventType");
+                  // console.log(eventType);
                   <tr>
                     <td></td>
+                    <td>{this.produceGradesString(raceEvent.grades)}</td>
                     <td>{eventType.distance}</td>
                     <td>{eventType.stroke}</td>
-                    <td>{this.produceGradesString(raceEvent.grades)}</td>
                     <td>
                       <button onClick={() => { this.handleRemove(raceEvent.raceEventId) }}>Remove</button>
                     </td>
                   </tr>
-                })
-              }) }
+                ))
+              )) }
             </tbody>
           </table>
         </div>
