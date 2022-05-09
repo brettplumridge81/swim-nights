@@ -8,6 +8,12 @@ let RaceEvent = new Schema({
     eventTypeId: {
         type: String
     },
+    stroke: {
+        type: String
+    },
+    distance: {
+        type: Number
+    },
     swimmerNames: {
         type: [String]
     },
