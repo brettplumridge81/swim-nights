@@ -11,9 +11,9 @@ export class EnterRaces extends Component {
     super(props);
     this.state = { 
       eventTypes: [],
-      raceNight: [],
-      raceNightEventTypes: [],
+      raceNight: undefined,
       raceNightEvents: [],
+      raceNightEventsForSwimmer: [],
       swimmers: [],
       selectedSwimmerName: "",
       selectedSwimmerGrade: "",
@@ -28,7 +28,7 @@ export class EnterRaces extends Component {
     this.populateEventTypesData();
     this.getRaceNight();
     this.getRaceNightEventsData();
-    this.getResultsDataForRaceNightEventsForSelectedSwimmer();
+    // this.getResultsDataForRaceNightEventsForSelectedSwimmer();
   }
 
   async populateSwimmers() {
@@ -63,7 +63,7 @@ export class EnterRaces extends Component {
           raceNight: response.data
             .filter(x => x.date[0] === today.getDate())
             .filter(x => x.date[1] === today.getMonth())
-            .filter(x => x.date[2] === today.getFullYear())
+            .filter(x => x.date[2] === today.getFullYear())[0]
         });
       })
       .catch(function (error) {
@@ -108,49 +108,44 @@ export class EnterRaces extends Component {
   handleSwimmerSelect(swimmer) {
     this.setState({
       selectedSwimmerName: swimmer.name,
-      selectedSwimmerGrade: swimmer.grade,
-      raceNightEventTypes: []
+      selectedSwimmerGrade: swimmer.grade
     }, () => {
-      this.setRaceNightEvents();
+      this.setRaceNightEventsForSwimmer();
       this.getResultsDataForRaceNightEventsForSelectedSwimmer();
     });
   }
 
-  setRaceNightEvents() {
-    if (this.state.raceNight.length === 0) {
+  setRaceNightEventsForSwimmer() {
+    if (this.state.raceNight === undefined) {
       return;
     }
 
     this.setState({
-      raceNightEventTypes: this.state.eventTypes
-        .filter(x => this.state.raceNight[0].raceEventIds.includes(x.eventTypeId))
-        .filter(x => x.grades.includes(this.state.selectedSwimmerGrade))
+      raceNightEventsForSwimmer: this.state.raceNightEvents.filter(x => x.grades.includes(this.state.selectedSwimmerGrade))
     });
   }
 
-  handleEventChecked(eventType) {
-    console.log("eventType");
-    console.log(eventType);
+  handleEventChecked(raceEvent) {
+    console.log("raceEvent");
+    console.log(raceEvent);
 
-    var raceEvent = this.state.raceNightEvents.filter(x => x.eventTypeId === eventType.eventTypeId)[0];
-
-    if (this.isEntered(eventType)) {
+    if (this.isEntered(raceEvent)) {
       var index = raceEvent.swimmerNames.indexOf(this.state.selectedSwimmerName);
       raceEvent.swimmerNames.splice(index, 1);
       this.removeResult(raceEvent, this.state.selectedSwimmerName);
     } else {
       raceEvent.swimmerNames.push(this.state.selectedSwimmerName);
-      this.addResult(raceEvent, eventType, this.state.selectedSwimmerName);
+      this.addResult(raceEvent, raceEvent.eventTypeId, this.state.selectedSwimmerName);
     }
   }
 
-  addResult(raceEvent, eventType, swimmerName) {
+  addResult(raceEvent, eventTypeId, swimmerName) {
     var results = this.state.results;
 
     const newResult = {
       resultId: uuidv4(),
       raceEventId: raceEvent.raceEventId,
-      eventTypeId: eventType.eventTypeId,
+      eventTypeId: eventTypeId,
       swimmerName: swimmerName,
       goAt: undefined,
       grossTime: undefined,
@@ -410,6 +405,7 @@ export class EnterRaces extends Component {
             <table className="table table-striped" style={{ marginTop: 20 }}>
               <thead>
                 <tr>
+                  <th>Event Number</th>
                   <th>Grades</th>
                   <th>Distance</th>
                   <th>Stroke</th>
@@ -418,8 +414,9 @@ export class EnterRaces extends Component {
               </thead>
               <tbody>
                 {
-                  this.state.raceNightEventTypes.map((currentEvent) => (
+                  this.state.raceNightEventsForSwimmer.map((currentEvent) => (
                     <tr>
+                      <td>{currentEvent.eventNumber}</td>
                       <td>{this.produceGradesString(currentEvent.grades)}</td>
                       <td>{currentEvent.distance}</td>
                       <td>{currentEvent.stroke}</td>

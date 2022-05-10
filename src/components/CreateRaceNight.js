@@ -2,50 +2,6 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
-const RaceEvent = props => (
-  <tr>
-    <td>{props.raceEvent.eventNumber}</td>
-    <td>{produceGradesString(props.raceEvent.grades)}</td>
-    <td>{props.raceEvent.distance}</td>
-    <td>{props.raceEvent.stroke}</td>
-    <td>
-      <button onClick={() => { this.handleRemove(props.raceEvent.raceEventId) }}>Remove</button>
-    </td>
-    <td>
-      <table>
-        <tr><td>
-          <a href="#" onClick="up();">&#8593;</a>
-        </td></tr>
-        <tr><td>
-          &#8593;
-        </td></tr>
-      </table>
-    </td>
-  </tr>
-)
-
-const produceGradesString = (grades) => {
-  var string = "";
-  string = string + grades[0];
-  for (var i = 1; i < grades.length - 1; i++) {
-      string = string + ", " + grades[i];
-  }
-  if (grades.length > 1) {
-      string = string + " & " + grades[grades.length - 1] + " grades";
-  } else {
-      if (grades[grades.length - 1] === "15-years") {
-          string = string + " & over";
-      } else {
-          string = string + "-grade";
-      }
-  }
-  return string;
-}
-
-function up(){
-  console.log("jhbasdkljbhas");
-}
-
 export class CreateRaceNight extends Component {
 
   constructor(props) {
@@ -144,6 +100,15 @@ export class CreateRaceNight extends Component {
   }
 
   addRaceEvent() {
+    const existingRaceEvents = this.state.raceEvents
+      .filter(x => x.distance === this.state.selectedEventType.distance)
+      .filter(x => x.stroke === this.state.selectedEventType.stroke)
+      .filter(x => x.grades === this.state.grades);
+
+    if (existingRaceEvents.length !== 0) {
+      return;
+    }
+
     const newRaceEvent = {
       raceEventId: uuidv4(),
       eventTypeId: this.state.selectedEventType.eventTypeId,
@@ -176,26 +141,65 @@ export class CreateRaceNight extends Component {
     }
 
     this.state.raceEvents.forEach(raceEvent => {
-      axios.post('http://localhost:4000/fridaynightraces/events/add_raceEvent', raceEvent)
+      axios.post('http://localhost:4000/fridaynightraces/raceevents/add_raceEvent', raceEvent)
       .catch(function (error) {
         console.log(error);
       });
     })
 
-    axios.post('http://localhost:4000/fridaynightraces/events/add_raceNight', newRaceNight)
+    axios.post('http://localhost:4000/fridaynightraces/racenights/add_raceNight', newRaceNight)
     .catch(function (error) {
       console.log(error);
     });
   }
 
-  handleRemove() {
-
+  handleRemove(raceEvent) {
+    var raceEvents = [...this.state.raceEvents];
+    raceEvents = raceEvents.filter(x => x !== raceEvent);
+    const sortedRaceEvents = raceEvents.sort((a, b) => a.eventNumber > b.eventNumber ? 1 : -1);
+    this.setState({ raceEvents: sortedRaceEvents });
   }
 
-  raceEventsList() {
-    return this.state.raceEvents.map(function(currentRaceEvent, i) {
-        return <RaceEvent raceEvent={currentRaceEvent} key={i} />
-    });
+  produceGradesString = (grades) => {
+    var string = "";
+    string = string + grades[0];
+    for (var i = 1; i < grades.length - 1; i++) {
+        string = string + ", " + grades[i];
+    }
+    if (grades.length > 1) {
+        string = string + " & " + grades[grades.length - 1] + " grades";
+    } else {
+        if (grades[grades.length - 1] === "15-years") {
+            string = string + " & over";
+        } else {
+            string = string + "-grade";
+        }
+    } 
+    return string;
+  }
+
+  up(raceEvent) {
+    var raceEvents = [...this.state.raceEvents];
+    var index = raceEvents.indexOf(raceEvent);
+    if (index === 0) {
+      return;
+    }
+    raceEvents[index].eventNumber -= 1;
+    raceEvents[index - 1].eventNumber += 1;
+    const sortedRaceEvents = raceEvents.sort((a, b) => a.eventNumber > b.eventNumber ? 1 : -1);
+    this.setState({ raceEvents: sortedRaceEvents });
+  }
+  
+  down(raceEvent) {
+    var raceEvents = [...this.state.raceEvents];
+    var index = raceEvents.indexOf(raceEvent);
+    if (index === raceEvents.length - 1) {
+      return;
+    }
+    raceEvents[index].eventNumber += 1;
+    raceEvents[index + 1].eventNumber -= 1;
+    const sortedRaceEvents = raceEvents.sort((a, b) => a.eventNumber > b.eventNumber ? 1 : -1);
+    this.setState({ raceEvents: sortedRaceEvents });
   }
 
   render() {
@@ -258,7 +262,32 @@ export class CreateRaceNight extends Component {
               </tr>
             </thead>
             <tbody>
-              { this.raceEventsList() } 
+              { this.state.raceEvents.map(currentRaceEvent => (
+                <tr>
+                  <td>{currentRaceEvent.eventNumber}</td>
+                  <td>{this.produceGradesString(currentRaceEvent.grades)}</td>
+                  <td>{currentRaceEvent.distance}</td>
+                  <td>{currentRaceEvent.stroke}</td>
+                  <td>
+                    <button onClick={() => { this.handleRemove(currentRaceEvent) }}>Remove</button>
+                  </td>
+                  <td>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <button onClick={() => this.up(currentRaceEvent) }>&#8593;</button>
+                          </td>
+                          <td>
+                            <button onClick={() => this.down(currentRaceEvent) }>&#8595;</button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                </tr>
+                )
+              )}
             </tbody>
           </table>
         </div>
