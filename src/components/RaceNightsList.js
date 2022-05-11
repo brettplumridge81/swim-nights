@@ -79,7 +79,10 @@ export class RaceNightsList extends Component {
 
     axios.get('http://localhost:4000/fridaynightraces/raceEvents/')
     .then(response => {
-      this.setState({raceEvents: response.data.filter(x => raceNight.raceEventIds.includes(x.raceEventId))});
+      this.setState({
+        raceEvents: response.data.filter(x => raceNight.raceEventIds.includes(x.raceEventId))
+          .sort((a, b) => (a.eventNumber > b.eventNumber) ? 1 : -1)
+      });
     });
   }
 

@@ -14,7 +14,13 @@ export class EnterRaces extends Component {
       raceNight: undefined,
       raceNightEvents: [],
       raceNightEventsForSwimmer: [],
-      swimmers: [],
+      isEnteredForSwimmer: [],
+      e_swimmers: [],
+      d_swimmers: [],
+      c_swimmers: [],
+      b_swimmers: [],
+      a_swimmers: [],
+      old_fart_swimmers: [],
       selectedSwimmerName: "",
       selectedSwimmerGrade: "",
       results: []
@@ -28,14 +34,24 @@ export class EnterRaces extends Component {
     this.populateEventTypesData();
     this.getRaceNight();
     this.getRaceNightEventsData();
-    // this.getResultsDataForRaceNightEventsForSelectedSwimmer();
   }
 
   async populateSwimmers() {
     axios.get('http://localhost:4000/fridaynightraces/swimmers/')
       .then(response => {
+        var e_swimmers = response.data.filter(x => x.grade === "E").sort((a, b) => a.name.localeCompare(b.name));
+        var d_swimmers = response.data.filter(x => x.grade === "D").sort((a, b) => a.name.localeCompare(b.name));
+        var c_swimmers = response.data.filter(x => x.grade === "C").sort((a, b) => a.name.localeCompare(b.name));
+        var b_swimmers = response.data.filter(x => x.grade === "B").sort((a, b) => a.name.localeCompare(b.name));
+        var a_swimmers = response.data.filter(x => x.grade === "A").sort((a, b) => a.name.localeCompare(b.name));
+        var old_fart_swimmers = response.data.filter(x => x.grade === "15-years").sort((a, b) => a.name.localeCompare(b.name));
         this.setState({ 
-          swimmers: response.data
+          e_swimmers: e_swimmers,
+          d_swimmers: d_swimmers,
+          c_swimmers: c_swimmers,
+          b_swimmers: b_swimmers,
+          a_swimmers: a_swimmers,
+          old_fart_swimmers: old_fart_swimmers
         });
       })
       .catch(function (error) {
@@ -90,7 +106,7 @@ export class EnterRaces extends Component {
   async getResultsDataForRaceNightEventsForSelectedSwimmer() {
     axios.get('http://localhost:4000/fridaynightraces/results/')
       .then(response => {
-        var raceEventIds = this.state.raceNightEvents.map(x => x.raceEventId);
+        var raceEventIds = this.state.raceNightEventsForSwimmer.map(x => x.raceEventId);
         var results = response.data
           .filter(x => raceEventIds.includes(x.raceEventId))
           .filter(x => x.swimmerName === this.state.selectedSwimmerName);
@@ -107,6 +123,8 @@ export class EnterRaces extends Component {
 
   handleSwimmerSelect(swimmer) {
     this.setState({
+      raceNightEventsForSwimmer: [],
+      isEnteredForSwimmer: [],
       selectedSwimmerName: swimmer.name,
       selectedSwimmerGrade: swimmer.grade
     }, () => {
@@ -120,23 +138,53 @@ export class EnterRaces extends Component {
       return;
     }
 
+    var raceNightEventsForSwimmer = this.state.raceNightEvents.filter(x => x.grades.includes(this.state.selectedSwimmerGrade))
+      .sort((a, b) => (a.eventNumber > b.eventNumber) ? 1 : -1);
+    
+    var isEnteredForSwimmer = raceNightEventsForSwimmer.map(x => this.isEntered(x));
+
     this.setState({
-      raceNightEventsForSwimmer: this.state.raceNightEvents.filter(x => x.grades.includes(this.state.selectedSwimmerGrade))
+      raceNightEventsForSwimmer: raceNightEventsForSwimmer,
+      isEnteredForSwimmer: isEnteredForSwimmer
     });
   }
 
-  handleEventChecked(raceEvent) {
-    console.log("raceEvent");
-    console.log(raceEvent);
+  // handleEventEntryChanged(raceEventId) {
+  //   var raceNightEventsForSwimmer = [...this.state.raceNightEventsForSwimmer];
+  //   var raceEvent = raceNightEventsForSwimmer.filter(x => x.raceEventId === raceEventId)[0];
+  //   if (this.isEntered(raceEvent)) {
+  //     raceEvent.swimmerNames = raceEvent.swimmerNames.filter(x => x !== this.state.selectedSwimmerName);
+  //     this.removeResult(raceEvent, this.state.selectedSwimmerName);
+  //   } else {
+  //     raceEvent.swimmerNames = [...raceEvent.swimmerNames].concat(this.state.selectedSwimmerName);
+  //     this.addResult(raceEvent, raceEvent.eventTypeId, this.state.selectedSwimmerName);
+  //   }
 
+  //   var isEnteredForSwimmer = raceNightEventsForSwimmer.map(x => this.isEntered(x));
+
+  //   this.setState({
+  //     raceNightEventsForSwimmer: raceNightEventsForSwimmer,
+  //     isEnteredForSwimmer: isEnteredForSwimmer
+  //   });
+  // }
+
+  handleEventChecked(raceEventId) {
+    var raceNightEventsForSwimmer = [...this.state.raceNightEventsForSwimmer];
+    var raceEvent = raceNightEventsForSwimmer.filter(x => x.raceEventId === raceEventId)[0];
     if (this.isEntered(raceEvent)) {
-      var index = raceEvent.swimmerNames.indexOf(this.state.selectedSwimmerName);
-      raceEvent.swimmerNames.splice(index, 1);
+      raceEvent.swimmerNames = raceEvent.swimmerNames.filter(x => x !== this.state.selectedSwimmerName);
       this.removeResult(raceEvent, this.state.selectedSwimmerName);
     } else {
-      raceEvent.swimmerNames.push(this.state.selectedSwimmerName);
+      raceEvent.swimmerNames = [...raceEvent.swimmerNames].concat(this.state.selectedSwimmerName);
       this.addResult(raceEvent, raceEvent.eventTypeId, this.state.selectedSwimmerName);
     }
+
+    var isEnteredForSwimmer = raceNightEventsForSwimmer.map(x => this.isEntered(x));
+
+    this.setState({
+      raceNightEventsForSwimmer: raceNightEventsForSwimmer,
+      isEnteredForSwimmer: isEnteredForSwimmer
+    });
   }
 
   addResult(raceEvent, eventTypeId, swimmerName) {
@@ -175,20 +223,19 @@ export class EnterRaces extends Component {
   }
 
   handleEnterRaces() {
-    this.storeUpdatedRaceEvents(this.state.raceNightEvents);
+    this.storeUpdatedRaceEvents(this.state.raceNightEventsForSwimmer);
 
     this.deleteResults(this.state.results).then(() => {
       this.storeResults(this.state.results);
     });
 
-    this.removeActiveRaceSheets(this.state.raceNightEvents.map(x => x.raceEventId)).then(() => {
-      this.generateRaceSheetsForEvents(this.state.raceNightEvents);
+    this.removeActiveRaceSheets(this.state.raceNightEventsForSwimmer.map(x => x.raceEventId)).then(() => {
+      this.generateRaceSheetsForEvents(this.state.raceNightEventsForSwimmer);
     });
 
-    // setTimeout(() => {
-    //   alert("Races Entered");
-    //   window.location.reload(false);
-    // }, 1000);
+    setTimeout(() => {
+      window.location.reload(false);
+    }, 1000);
   }
 
   async storeUpdatedRaceEvents(raceEvents) {
@@ -244,17 +291,11 @@ export class EnterRaces extends Component {
     var goAts = [];
 
     raceEvents.forEach(raceEvent => {
-      console.log("raceEvent");
-      console.log(raceEvent);
-
       var swimmers = [];
       axios.get('http://localhost:4000/fridaynightraces/swimmers/')
       .then(response => {
         swimmers = response.data.filter(x => raceEvent.swimmerNames.includes(x.name));
       }).then(() => {
-        // console.log("swimmers");
-        // console.log(swimmers);
-
         if (swimmers.length === 0) {
           numberOfHeats = 0;
         } else if (swimmerNames.length <= 7) {
@@ -266,16 +307,12 @@ export class EnterRaces extends Component {
         var swimmerSheetObjects = [];
         swimmers.forEach(swimmer => {
           var index = swimmer.eventTypeIds.indexOf(raceEvent.eventTypeId);
-          swimmerSheetObjects.push([swimmer.name, swimmer.hCapTimes[index] !== null ? swimmer.hcapTimes[index] : 10000]);
+          swimmerSheetObjects.push([swimmer.name, index !== -1 ? swimmer.hCapTimes[index] : 10000]);
         });
-
         swimmerSheetObjects.sort((a, b) => (a[1] > b[1]) ? -1 : 1);
-        console.log("swimmerSheetObjects");
-        console.log(swimmerSheetObjects);
 
         swimmerNames = swimmerSheetObjects.map(x => x[0]);
         hcapTimes = swimmerSheetObjects.map(x => x[1]);
-        // console.log(hcapTimes);
 
         hcapTimes.forEach(x => {
           goAts.push(hcapTimes[0] - x);
@@ -290,12 +327,6 @@ export class EnterRaces extends Component {
   }
 
   populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent) {
-    // console.log(swimmerNames);
-    // console.log(hcapTimes);
-    // console.log(goAts);
-    // console.log(numberOfHeats);
-    // console.log(raceEvent);
-
     var numberOfSwimmers = swimmerNames.length;
     var swimmersPerHeat = parseInt(numberOfSwimmers / numberOfHeats);
     var swimmerCount = 0;
@@ -357,8 +388,7 @@ export class EnterRaces extends Component {
   }
 
   isEntered(currentEvent) {
-    var raceEvent = this.state.raceNightEvents.filter(x => x.eventTypeId === currentEvent.eventTypeId)[0];
-    if (raceEvent.swimmerNames.includes(this.state.selectedSwimmerName)) {
+    if (currentEvent.swimmerNames.includes(this.state.selectedSwimmerName)) {
       return true;
     } else {
       return false;
@@ -389,16 +419,94 @@ export class EnterRaces extends Component {
         <div>
           <h3>Swimmers</h3>
           <div>
-            {
-              this.state.swimmers.map((swimmer) => (
-                <div>
-                  <label>
-                    <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
-                    {swimmer.name}
-                  </label>
-                </div>
-              ))
-            }
+            <table style={{width: '100%'}}>
+              <thead>
+                <tr>
+                  <th>E-Grade</th>
+                  <th>D-Grade</th>
+                  <th>C-Grade</th>
+                  <th>B-Grade</th>
+                  <th>A-Grade</th>
+                  <th>15 Year &amp; Over</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{verticalAlign: 'top'}}>
+                    {
+                      this.state.e_swimmers.map((swimmer) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            &emsp; {swimmer.name}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                  <td style={{verticalAlign: 'top'}}>
+                    {
+                      this.state.d_swimmers.map((swimmer) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            &emsp; {swimmer.name}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                  <td style={{verticalAlign: 'top'}}>
+                    {
+                      this.state.c_swimmers.map((swimmer) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            &emsp; {swimmer.name}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                  <td style={{verticalAlign: 'top'}}>
+                    {
+                      this.state.b_swimmers.map((swimmer) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            &emsp; {swimmer.name}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                  <td style={{verticalAlign: 'top'}}>
+                    {
+                      this.state.a_swimmers.map((swimmer) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            &emsp; {swimmer.name}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                  <td style={{verticalAlign: 'top'}}>
+                    {
+                      this.state.old_fart_swimmers.map((swimmer) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            &emsp; {swimmer.name}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
           <div>
             <h3>Events</h3>
@@ -414,14 +522,17 @@ export class EnterRaces extends Component {
               </thead>
               <tbody>
                 {
-                  this.state.raceNightEventsForSwimmer.map((currentEvent) => (
+                  this.state.raceNightEventsForSwimmer.map((currentEvent, i) => (
                     <tr>
                       <td>{currentEvent.eventNumber}</td>
                       <td>{this.produceGradesString(currentEvent.grades)}</td>
                       <td>{currentEvent.distance}</td>
                       <td>{currentEvent.stroke}</td>
+                      {/* <td>
+                        <button onClick={ () => this.handleEventEntryChanged(currentEvent.raceEventId) }>{this.state.isEnteredForSwimmer[i] ? "Withdraw" : "Enter"}</button>
+                      </td> */}
                       <td>
-                        <input type="checkbox" defaultChecked={ this.isEntered(currentEvent) } onChange={ () => this.handleEventChecked(currentEvent) } />
+                        <input type="checkbox" defaultChecked={ this.isEntered(currentEvent) } onChange={ () => this.handleEventChecked(currentEvent.raceEventId) } />
                       </td>
                     </tr>
                   ))

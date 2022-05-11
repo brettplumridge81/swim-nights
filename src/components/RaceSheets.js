@@ -84,8 +84,6 @@ export class RaceSheets extends Component {
   render() {
     return (
       this.state.raceSheets.map(raceSheet => {
-        console.log("raceSheet");
-        console.log(raceSheet);
         var eventType = this.state.eventTypes.filter(eventType => raceSheet.eventTypeId === eventType.eventTypeId)[0];
         var raceEvent = this.state.raceNightEvents.filter(raceEvent => raceSheet.raceEventId === raceEvent.raceEventId)[0];
 
@@ -119,7 +117,7 @@ export class RaceSheets extends Component {
                 <tbody>
                   <tr>
                     <td colSpan="2"><strong>EVENT:</strong> {eventType.distance}m {eventType.stroke} </td>
-                    <td colSpan="2"><strong>GRADE:</strong> {this.produceGradesString(eventType.grades)} </td>
+                    <td colSpan="2"><strong>GRADE:</strong> {this.produceGradesString(raceEvent.grades)} </td>
                   </tr>
                   <tr>
                     <td colSpan="1"><strong>EVENT No.:</strong>{raceSheet.eventNumber}</td>

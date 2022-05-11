@@ -191,8 +191,7 @@ export class RaceNightResultsInput extends Component {
           return (
             <div>
               <div>
-                <h2>Race Night Events</h2>
-                <h3>{raceEvent.eventNumber}</h3>
+                <h3>Event: {raceEvent.eventNumber}</h3>
                   
                 <table style={{ borderWidth: '2px', borderStyle: 'solid' }}>
                   <colgroup>
@@ -224,7 +223,6 @@ export class RaceNightResultsInput extends Component {
                     }
                   </tbody>
                 </table>
-                <button onClick={() => this.recordSwimmerResult()}>Record Result</button>
               </div>
             </div>
           );

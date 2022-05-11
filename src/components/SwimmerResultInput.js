@@ -44,7 +44,8 @@ export class SwimmerResultInput extends Component {
     }
 
     handleChangeGrossMinutes(event) {
-        this.setState({ grossMinutes: event.target.value });
+        console.log(event.target.value);
+        this.setState({ grossMinutes: event.target.value !== "" ? event.target.value : undefined });
     }
 
     handleChangeGrossSeconds(event) {
@@ -56,11 +57,11 @@ export class SwimmerResultInput extends Component {
             grossHundredths: event.target.value 
         }, () => {
             this.setState({
-                netTime: new Array(
-                    this.state.grossMinutes - Math.floor(this.state.result.goAt / 60),
+                netTime: [
+                    this.state.grossMinutes !== undefined ? this.state.grossMinutes - Math.floor(this.state.result.goAt / 60) : 0,
                     this.state.grossSeconds - this.state.result.goAt % 60,
                     this.state.grossHundredths
-                )
+                ]
             });
         });
     }
@@ -72,7 +73,7 @@ export class SwimmerResultInput extends Component {
     recordSwimmerResult() {
         let result = this.state.result;
         result.place = this.state.place;
-        result.grossTime = new Array(this.state.grossMinutes, this.state.grossSeconds, this.state.grossHundredths);
+        result.grossTime = [this.state.grossMinutes, this.state.grossSeconds, this.state.grossHundredths];
         result.netTime = this.state.netTime;
 
         switch(this.state.place) {
@@ -115,12 +116,20 @@ export class SwimmerResultInput extends Component {
                 }
 
                 var bestTime = swimmer.bestTimes[index];
+                // console.log("bestTime");
+                // console.log(bestTime);
                 var netTimeHundredths = result.netTime[0] * 6000 + result.netTime[1] * 100 + result.netTime[2];
+                // console.log("netTimeHundredths");
+                // console.log(netTimeHundredths);
                 var bestTimeHundredths = bestTime !== undefined ? bestTime[0] * 6000 + bestTime[1] * 100 + bestTime[2] : 0;
+                // console.log("bestTimeHundredths");
+                // console.log(bestTimeHundredths);
 
                 if (netTimeHundredths > bestTimeHundredths) {
                     swimmer.bestTimes[index] = result.netTime;
                 }
+
+                // console.log(swimmer);
 
                 axios.get('http://localhost:4000/fridaynightraces/results/')
                 .then(response => {
@@ -204,26 +213,30 @@ export class SwimmerResultInput extends Component {
                             <input type="number" value={this.state.place !== undefined ? this.state.place: "" } onChange={this.handleChangePlace}></input>
                         </div>
                     </td>
-                    <td style={{ textAlign: 'center', borderWidth: '1px' }}>
-                        <div class="record_gross_time">
-                            <td>
-                                <input type="number" value={this.state.grossMinutes !== undefined ? this.state.grossMinutes : "" } 
-                                    onChange={this.handleChangeGrossMinutes}>
-                                </input>
-                            </td>
-                            <td>:</td>
-                            <td>
-                                <input type="number" value={this.state.grossSeconds !== undefined ? this.state.grossSeconds : ""} 
-                                    onChange={this.handleChangeGrossSeconds}>
-                                </input>
-                            </td>
-                            <td>.</td>
-                            <td>
-                                <input type="number" value={this.state.grossHundredths !== undefined ? this.state.grossHundredths : ""} 
-                                    onChange={this.handleChangeGrossHundredths}>
-                                </input>
-                            </td>
-                        </div>
+                    <td style={{ textAlign: 'center', borderWidth: '1px', width: '15%' }}>
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td class="record_gross_time">
+                                        <input type="number" value={this.state.grossMinutes !== undefined ? this.state.grossMinutes : "" } 
+                                            onChange={this.handleChangeGrossMinutes}>
+                                        </input>
+                                    </td>
+                                    <td>:</td>
+                                    <td class="record_gross_time">
+                                        <input type="number" value={this.state.grossSeconds !== undefined ? this.state.grossSeconds : ""} 
+                                            onChange={this.handleChangeGrossSeconds}>
+                                        </input>
+                                    </td>
+                                    <td>.</td>
+                                    <td class="record_gross_time">
+                                        <input type="number" value={this.state.grossHundredths !== undefined ? this.state.grossHundredths : ""} 
+                                            onChange={this.handleChangeGrossHundredths}>
+                                        </input>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </td>
                     <td style={{ textAlign: 'center', borderWidth: '1px' }}>
                         <div type="text">

@@ -7,23 +7,21 @@ export class CreateRaceNight extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      eventTypes: [],
+      backstrokeEventTypes: [],
+      breaststrokeEventTypes: [],
+      butterflyEventTypes: [],
+      freestyleEventTypes: [],
+      otherEventTypes: [],
       raceEvents: [],
       date: [0, 0, 0],
       selectedEventType: undefined,
-      grades: [],
-      isRelay: false,
-      swimmersPerTeam: 1,
-      isEnterOwnHcapTime: false
+      grades: []
     };
 
     this.handleChangeDateDay = this.handleChangeDateDay.bind(this);
     this.handleChangeDateMonth = this.handleChangeDateMonth.bind(this);
     this.handleChangeDateYear = this.handleChangeDateYear.bind(this);
     this.handleChangeGradesList = this.handleChangeGradesList.bind(this);
-    this.handleChangeIsRelay = this.handleChangeIsRelay.bind(this);
-    this.handleChangeSwimmersPerTeam = this.handleChangeSwimmersPerTeam.bind(this);
-    this.handleChangeIsEnterOwnHcapTime = this.handleChangeIsEnterOwnHcapTime.bind(this);
   }
 
   componentDidMount() {
@@ -34,7 +32,11 @@ export class CreateRaceNight extends Component {
     await axios.get('http://localhost:4000/fridaynightraces/eventtypes/')
       .then(response => {
         this.setState({ 
-          eventTypes: response.data
+          backstrokeEventTypes: response.data.filter(x => x.stroke === "Backstroke"),
+          breaststrokeEventTypes: response.data.filter(x => x.stroke === "Breaststroke"),
+          butterflyEventTypes: response.data.filter(x => x.stroke === "Butterfly"),
+          freestyleEventTypes: response.data.filter(x => x.stroke === "Freestyle"),
+          otherEventTypes: response.data.filter(x => x.stroke !== "Backstroke" && x.stroke !== "Breaststroke" && x.stroke !== "Butterfly" && x.stroke !== "Freestyle")
         });
       })
       .catch(function (error) {
@@ -63,7 +65,6 @@ export class CreateRaceNight extends Component {
   handleChangeDateYear(event) {
     var date = this.state.date;
     date[2] = event.target.value;
-    console.log(date);
     if (date[2] < 1900 || date[2] > new Date().getFullYear()) {
       date[2] = 0;
     }
@@ -78,21 +79,6 @@ export class CreateRaceNight extends Component {
         grades = grades.filter(x => x !== event.target.id);
     }
     this.setState({ grades: grades });
-  }
-
-  handleChangeIsRelay(event) {
-      this.setState({ 
-          isRelay: event.target.checked,
-          swimmersPerTeam: 1
-      });
-  }
-
-  handleChangeSwimmersPerTeam(event) {
-      this.setState({ swimmersPerTeam: event.target.value });
-  }
-
-  handleChangeIsEnterOwnHcapTime(event) {
-      this.setState({ isEnterOwnHcapTime: event.target.checked });
   }
 
   handleEventTypeSelect(eventType) {
@@ -122,7 +108,7 @@ export class CreateRaceNight extends Component {
     }
 
     var raceEvents = this.state.raceEvents.concat(newRaceEvent);
-    raceEvents.sort((a, b) => (a.eventNumber - b.eventNumber) ? 1 : -1);
+    raceEvents.sort((a, b) => (a.eventNumber > b.eventNumber) ? 1 : -1);
     this.setState({raceEvents: raceEvents});
   }
 
@@ -161,6 +147,10 @@ export class CreateRaceNight extends Component {
   }
 
   produceGradesString = (grades) => {
+    if (grades.length === 0) {
+      return "";
+    }
+
     var string = "";
     string = string + grades[0];
     for (var i = 1; i < grades.length - 1; i++) {
@@ -216,16 +206,73 @@ export class CreateRaceNight extends Component {
           </div>
           <br/>
           <div>
-            {
-              this.state.eventTypes.map((eventType) => (
-                <div>
-                  <label>
-                    <input type="radio" name="event_type_select" onChange={() => this.handleEventTypeSelect(eventType)} />
-                      &emsp; {eventType.distance}m {eventType.stroke}
-                  </label>
-                </div>
-              ))
-            }
+            <table style={{width: '100%'}}>
+              <tbody>
+                <tr>
+                  <td>
+                    {
+                      this.state.backstrokeEventTypes.map((eventType) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="event_type_select" onChange={() => this.handleEventTypeSelect(eventType)} />
+                              &emsp; {eventType.distance}m {eventType.stroke}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                  <td>
+                    {
+                      this.state.breaststrokeEventTypes.map((eventType) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="event_type_select" onChange={() => this.handleEventTypeSelect(eventType)} />
+                              &emsp; {eventType.distance}m {eventType.stroke}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                  <td>
+                    {
+                      this.state.butterflyEventTypes.map((eventType) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="event_type_select" onChange={() => this.handleEventTypeSelect(eventType)} />
+                              &emsp; {eventType.distance}m {eventType.stroke}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                  <td>
+                    {
+                      this.state.freestyleEventTypes.map((eventType) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="event_type_select" onChange={() => this.handleEventTypeSelect(eventType)} />
+                              &emsp; {eventType.distance}m {eventType.stroke}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                  <td>
+                    {
+                      this.state.otherEventTypes.map((eventType) => (
+                        <div>
+                          <label>
+                            <input type="radio" name="event_type_select" onChange={() => this.handleEventTypeSelect(eventType)} />
+                              &emsp; {eventType.distance}m {eventType.stroke}
+                          </label>
+                        </div>
+                      ))
+                    }
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            
           </div>
           <br/>
           <div>

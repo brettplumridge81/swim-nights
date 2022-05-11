@@ -18,10 +18,7 @@ export class Swimmers extends Component {
   }
 
   handleSwimmerSelection(event) {
-    console.log("SwimmerSelectEvent");
-    console.log(event.target.value);
     this.setState({ selectedSwimmerName: event.target.value });
-    console.log(this.state.selectedSwimmerName);
   }
 
   static renderSwimmers(swimmers) {

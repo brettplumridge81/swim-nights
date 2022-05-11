@@ -49,10 +49,8 @@ export class AddSwimmer extends Component {
     }
 
     handleChangeDobYear(event) {
-        console.log(event.target.value);
         var dob = this.state.dob;
         dob[2] = event.target.value;
-        console.log(dob);
         if (dob[2] < 1900 || dob[2] > new Date().getFullYear()) {
             dob[2] = 0;
         }
