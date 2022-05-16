@@ -23,9 +23,13 @@ export class SwimmerResultInput extends Component {
 
         axios.get('http://localhost:4000/fridaynightraces/results/')
             .then(response => {
+                console.log("response.data");
+                console.log(response.data);
                 let result = response.data
                     .filter(x => x.raceEventId === props.raceEventId)
-                    .filter(x => x.swimmerName === props.swimmerName)[0]
+                    .filter(x => x.swimmerName === props.swimmerName)[0];
+                console.log("result");
+                console.log(result);
                 this.setState({
                     result: result,
                     grossMinutes: result.grossTime[0],

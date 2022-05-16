@@ -199,7 +199,7 @@ export class CreateRaceNight extends Component {
           <h3>Create Race Nights</h3>
           <br/>
           <div>
-          <label>Date:&emsp;</label>
+            <label>Date:&emsp;</label>
             <input type="number" onChange={this.handleChangeDateDay} style={{ width: '50px', textAlign: 'center' }} />
             <input type="number" onChange={this.handleChangeDateMonth} style={{ width: '50px', textAlign: 'center' }} />
             <input type="number" onChange={this.handleChangeDateYear} style={{ width: '50px', textAlign: 'center' }} />

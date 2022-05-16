@@ -5,12 +5,13 @@ import { v4 as uuidv4 } from 'uuid';
 export class EnterRaces extends Component {
     static displayName = EnterRaces.name;
 
-    storedResults;
+    // storedResults;
   
     constructor(props) {
     super(props);
     this.state = { 
       eventTypes: [],
+      raceNightDates: [],
       raceNight: undefined,
       raceNightEvents: [],
       raceNightEventsForSwimmer: [],
@@ -23,7 +24,8 @@ export class EnterRaces extends Component {
       old_fart_swimmers: [],
       selectedSwimmerName: "",
       selectedSwimmerGrade: "",
-      results: []
+      results: [],
+      storedResults: []
     };
 
     this.handleSwimmerSelect = this.handleSwimmerSelect.bind(this);
@@ -32,8 +34,8 @@ export class EnterRaces extends Component {
   componentDidMount() {
     this.populateSwimmers();
     this.populateEventTypesData();
-    this.getRaceNight();
-    this.getRaceNightEventsData();
+    this.getRaceNightDates();
+    this.getRaceNight([new Date().getDate(), new Date().getMonth() + 1, new Date().getFullYear()]);
   }
 
   async populateSwimmers() {
@@ -71,15 +73,11 @@ export class EnterRaces extends Component {
       })
   }
 
-  async getRaceNight() {
+  async getRaceNightDates() {
     await axios.get('http://localhost:4000/fridaynightraces/racenights/')
       .then(response => {
-        var today = new Date(2021, 11, 20);
         this.setState({ 
-          raceNight: response.data
-            .filter(x => x.date[0] === today.getDate())
-            .filter(x => x.date[1] === today.getMonth())
-            .filter(x => x.date[2] === today.getFullYear())[0]
+          raceNightDates: response.data.map(x => x.date)
         });
       })
       .catch(function (error) {
@@ -87,38 +85,63 @@ export class EnterRaces extends Component {
       })
   }
 
-  async getRaceNightEventsData() {
+  async getRaceNight(date) {
+    await axios.get('http://localhost:4000/fridaynightraces/racenights/')
+      .then(response => {
+        this.setState({ 
+          raceNight: response.data
+            .filter(x => x.date[0] === date[0])
+            .filter(x => x.date[1] === date[1])
+            .filter(x => x.date[2] === date[2])[0]
+        });
+      })
+      .then(() => this.getRaceNightEventsData(date))
+      .catch(function (error) {
+        console.log(error);
+      })
+  }
+
+  async getRaceNightEventsData(date) {
     axios.get('http://localhost:4000/fridaynightraces/raceevents/')
         .then(response => {
-          var today = new Date(2021, 11, 20);
           this.setState({
             raceNightEvents: response.data
-              .filter(x => x.date[0] === today.getDate())
-              .filter(x => x.date[1] === today.getMonth())
-              .filter(x => x.date[2] === today.getFullYear())
+              .filter(x => x.date[0] === date[0])
+              .filter(x => x.date[1] === date[1])
+              .filter(x => x.date[2] === date[2])
           });
         })
+        .then (() => this.getResultsDataForRaceNightEvents())
         .catch(function (error) {
           console.log(error);
         });
   }
 
-  async getResultsDataForRaceNightEventsForSelectedSwimmer() {
+  async getResultsDataForRaceNightEvents() {
     axios.get('http://localhost:4000/fridaynightraces/results/')
       .then(response => {
-        var raceEventIds = this.state.raceNightEventsForSwimmer.map(x => x.raceEventId);
+        var raceEventIds = this.state.raceNightEvents.map(x => x.raceEventId);
         var results = response.data
-          .filter(x => raceEventIds.includes(x.raceEventId))
-          .filter(x => x.swimmerName === this.state.selectedSwimmerName);
+          .filter(x => raceEventIds.includes(x.raceEventId));
+        var storedResults = response.data
+          .filter(x => raceEventIds.includes(x.raceEventId));
         this.setState({
-          results: results
+          results: results,
+          storedResults: storedResults
         });
-        this.storedResults = new Array();
-        results.forEach(result => this.storedResults.push(result));
       })
       .catch(function (error) {
         console.log(error);
       });
+  }
+
+  handleRaceNightSelect(raceNightDate) {
+    this.setState({
+      selectedSwimmerName: "",
+      selectedSwimmerGrade: "",
+      raceNightEventsForSwimmer: []
+    });
+    this.getRaceNight(raceNightDate);
   }
 
   handleSwimmerSelect(swimmer) {
@@ -129,7 +152,6 @@ export class EnterRaces extends Component {
       selectedSwimmerGrade: swimmer.grade
     }, () => {
       this.setRaceNightEventsForSwimmer();
-      this.getResultsDataForRaceNightEventsForSelectedSwimmer();
     });
   }
 
@@ -148,25 +170,6 @@ export class EnterRaces extends Component {
       isEnteredForSwimmer: isEnteredForSwimmer
     });
   }
-
-  // handleEventEntryChanged(raceEventId) {
-  //   var raceNightEventsForSwimmer = [...this.state.raceNightEventsForSwimmer];
-  //   var raceEvent = raceNightEventsForSwimmer.filter(x => x.raceEventId === raceEventId)[0];
-  //   if (this.isEntered(raceEvent)) {
-  //     raceEvent.swimmerNames = raceEvent.swimmerNames.filter(x => x !== this.state.selectedSwimmerName);
-  //     this.removeResult(raceEvent, this.state.selectedSwimmerName);
-  //   } else {
-  //     raceEvent.swimmerNames = [...raceEvent.swimmerNames].concat(this.state.selectedSwimmerName);
-  //     this.addResult(raceEvent, raceEvent.eventTypeId, this.state.selectedSwimmerName);
-  //   }
-
-  //   var isEnteredForSwimmer = raceNightEventsForSwimmer.map(x => this.isEntered(x));
-
-  //   this.setState({
-  //     raceNightEventsForSwimmer: raceNightEventsForSwimmer,
-  //     isEnteredForSwimmer: isEnteredForSwimmer
-  //   });
-  // }
 
   handleEventChecked(raceEventId) {
     var raceNightEventsForSwimmer = [...this.state.raceNightEventsForSwimmer];
@@ -196,25 +199,24 @@ export class EnterRaces extends Component {
       eventTypeId: eventTypeId,
       swimmerName: swimmerName,
       goAt: undefined,
-      grossTime: undefined,
-      netTime: undefined,
+      grossTime: [undefined, undefined, undefined],
+      netTime: [undefined, undefined, undefined],
       place: undefined,
       points: undefined
     }
 
     results.push(newResult);
-    
     raceEvent.resultIds.push(newResult.resultId);
   }
 
   removeResult(raceEvent, swimmerName) {
     var results = this.state.results;
-    
+
     var resultId = results
       .filter(x => x.raceEventId === raceEvent.raceEventId)
       .filter(x => x.swimmerName === swimmerName)
       .map(x => x.resultId)[0];
-
+    
     var index = results.map(x => x.resultId).indexOf(resultId);
     results.splice(index, 1);
 
@@ -248,7 +250,7 @@ export class EnterRaces extends Component {
   }
 
   async deleteResults(results) {
-    var resultsToDelete = this.storedResults.filter(result => !results.includes(result));
+    var resultsToDelete = this.state.storedResults.filter(result => !results.includes(result));
     resultsToDelete.forEach(result => {
       axios.get('http://localhost:4000/fridaynightraces/results/delete/' + result._id)
         .catch(function (error) {
@@ -258,7 +260,8 @@ export class EnterRaces extends Component {
   }
 
   async storeResults(results) {
-    var resultsToCreate = results.filter(result => !this.storedResults.includes(result));
+    var resultsToCreate = results.filter(result => !this.state.storedResults.includes(result));
+
     resultsToCreate.forEach(result => {
       axios.post('http://localhost:4000/fridaynightraces/results/add_result', result)
         .catch(function (error) {
@@ -295,13 +298,13 @@ export class EnterRaces extends Component {
       axios.get('http://localhost:4000/fridaynightraces/swimmers/')
       .then(response => {
         swimmers = response.data.filter(x => raceEvent.swimmerNames.includes(x.name));
-      }).then(() => {
+        
         if (swimmers.length === 0) {
           numberOfHeats = 0;
-        } else if (swimmerNames.length <= 7) {
+        } else if (swimmers.length < 8) {
           numberOfHeats = 1;
         } else {
-          numberOfHeats = swimmerNames.length !== 0 ? parseInt(swimmerNames.length / 6) : 0;
+          numberOfHeats = Math.ceil(swimmers.length / 7);
         }
 
         var swimmerSheetObjects = [];
@@ -319,29 +322,35 @@ export class EnterRaces extends Component {
         });
 
         this.populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent);
-      })
-      .catch(function (error) {
-        console.log(error);
       });
     });
   }
 
   populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent) {
     var numberOfSwimmers = swimmerNames.length;
-    var swimmersPerHeat = parseInt(numberOfSwimmers / numberOfHeats);
-    var swimmerCount = 0;
+    var swimmersPerHeat = Math.ceil(numberOfSwimmers / numberOfHeats);
+    var swimmerCount = 1;
+
+    var heatSwimmerNames = [];
+    var heatHcapTimes = [];
+    var heatGoAts = [];
 
     for (var heatCount = 0; heatCount < numberOfHeats; heatCount++) {
-      var heatSwimmerNames = [];
-      var heatHcapTimes = [];
-      var heatGoAts = [];
-      
-      while (swimmerCount < swimmersPerHeat) {
-        heatSwimmerNames.push(swimmerNames[swimmerCount]);
-        heatHcapTimes.push(hcapTimes[swimmerCount]);
-        heatGoAts.push(goAts[swimmerCount]);
+      heatSwimmerNames = [];
+      heatHcapTimes = [];
+      heatGoAts = [];
+
+      while (swimmerCount % swimmersPerHeat !== 0 && swimmerCount < swimmerNames.length) {
+        heatSwimmerNames.push(swimmerNames[swimmerCount - 1]);
+        heatHcapTimes.push(hcapTimes[swimmerCount - 1]);
+        heatGoAts.push(goAts[swimmerCount - 1]);
         swimmerCount++;
       }
+      heatSwimmerNames.push(swimmerNames[swimmerCount - 1]);
+      heatHcapTimes.push(hcapTimes[swimmerCount - 1]);
+      heatGoAts.push(goAts[swimmerCount - 1]);
+      swimmerCount++;
+      
 
       const newRaceSheet = {
         raceSheetId: uuidv4(),
@@ -361,7 +370,7 @@ export class EnterRaces extends Component {
       });
     }
 
-    this.updateGoAtsInResults(raceEvent, swimmerNames, goAts);
+    this.updateGoAtsInResults(raceEvent, heatSwimmerNames, heatGoAts);
   }
 
   updateGoAtsInResults(raceEvent, swimmerNames, goAts) {
@@ -417,6 +426,26 @@ export class EnterRaces extends Component {
     return (
       <div>
         <div>
+          <div>
+            <h3>Race Night Dates</h3>
+            <div>
+              {
+                this.state.raceNightDates.map((raceNightDate) => (
+                  <div>
+                    <label>
+                      <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(raceNightDate)} 
+                        checked={
+                          this.state.raceNight !== undefined
+                           ? raceNightDate[0] === this.state.raceNight.date[0] && raceNightDate[1] === this.state.raceNight.date[1] && raceNightDate[2] === this.state.raceNight.date[2] 
+                           : false
+                        }/>
+                      {raceNightDate[0] + "/" + raceNightDate[1] + "/" + raceNightDate[2]}
+                    </label>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
           <h3>Swimmers</h3>
           <div>
             <table style={{width: '100%'}}>
@@ -437,7 +466,7 @@ export class EnterRaces extends Component {
                       this.state.e_swimmers.map((swimmer) => (
                         <div>
                           <label>
-                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} checked={this.state.selectedSwimmerName === swimmer.name}/>
                             &emsp; {swimmer.name}
                           </label>
                         </div>
@@ -449,7 +478,7 @@ export class EnterRaces extends Component {
                       this.state.d_swimmers.map((swimmer) => (
                         <div>
                           <label>
-                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} checked={this.state.selectedSwimmerName === swimmer.name}/>
                             &emsp; {swimmer.name}
                           </label>
                         </div>
@@ -461,7 +490,7 @@ export class EnterRaces extends Component {
                       this.state.c_swimmers.map((swimmer) => (
                         <div>
                           <label>
-                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} checked={this.state.selectedSwimmerName === swimmer.name}/>
                             &emsp; {swimmer.name}
                           </label>
                         </div>
@@ -473,7 +502,7 @@ export class EnterRaces extends Component {
                       this.state.b_swimmers.map((swimmer) => (
                         <div>
                           <label>
-                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} checked={this.state.selectedSwimmerName === swimmer.name}/>
                             &emsp; {swimmer.name}
                           </label>
                         </div>
@@ -485,7 +514,7 @@ export class EnterRaces extends Component {
                       this.state.a_swimmers.map((swimmer) => (
                         <div>
                           <label>
-                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} checked={this.state.selectedSwimmerName === swimmer.name}/>
                             &emsp; {swimmer.name}
                           </label>
                         </div>
@@ -497,7 +526,7 @@ export class EnterRaces extends Component {
                       this.state.old_fart_swimmers.map((swimmer) => (
                         <div>
                           <label>
-                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} />
+                            <input type="radio" name="swimmer_select" onChange={() => this.handleSwimmerSelect(swimmer)} checked={this.state.selectedSwimmerName === swimmer.name}/>
                             &emsp; {swimmer.name}
                           </label>
                         </div>
@@ -528,9 +557,6 @@ export class EnterRaces extends Component {
                       <td>{this.produceGradesString(currentEvent.grades)}</td>
                       <td>{currentEvent.distance}</td>
                       <td>{currentEvent.stroke}</td>
-                      {/* <td>
-                        <button onClick={ () => this.handleEventEntryChanged(currentEvent.raceEventId) }>{this.state.isEnteredForSwimmer[i] ? "Withdraw" : "Enter"}</button>
-                      </td> */}
                       <td>
                         <input type="checkbox" defaultChecked={ this.isEntered(currentEvent) } onChange={ () => this.handleEventChecked(currentEvent.raceEventId) } />
                       </td>

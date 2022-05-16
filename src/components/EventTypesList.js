@@ -15,24 +15,6 @@ const EventType = props => (
   </tr>
 )
 
-// const produceGradesString = (grades) => {
-//   var string = "";
-//   string = string + grades[0];
-//   for (var i = 1; i < grades.length - 1; i++) {
-//       string = string + ", " + grades[i];
-//   }
-//   if (grades.length > 1) {
-//       string = string + " & " + grades[grades.length - 1] + " grades";
-//   } else {
-//       if (grades[grades.length - 1] === "15-years") {
-//           string = string + " & over";
-//       } else {
-//           string = string + "-grade";
-//       }
-//   }
-//   return string;
-// }
-
 const handleDelete = (id) => {
   try {
     axios.get('http://localhost:4000/fridaynightraces/eventTypes/delete/' + id);
@@ -52,11 +34,7 @@ export class EventTypesList extends Component {
   componentDidMount() {
     axios.get('http://localhost:4000/fridaynightraces/eventtypes/')
       .then(response => {
-        var eventTypes = response.data;
-        var sortedeventTypes = eventTypes.sort(function (a, b) {
-          return a.stroke.localeCompare(b.stroke) || a.distance > b.distance;
-        });
-        this.setState({ eventTypes: eventTypes });
+        this.setState({ eventTypes: response.data });
       })
       .catch(function (error) {
         console.log(error);

@@ -28,6 +28,7 @@ export class RaceSheets extends Component {
             .filter(x => x.date[0] === today.getDate())
             .filter(x => x.date[1] === today.getMonth())
             .filter(x => x.date[2] === today.getFullYear())
+            .sort((a, b) => a.eventNumber < b.eventNumber ? -1 : 1)
         });
       })
       .catch(function (error) {
@@ -113,17 +114,24 @@ export class RaceSheets extends Component {
             <div>
               <h1>Maitland Swimming Club Race Sheet</h1>
               
-              <table>
+              <table style={{ width:'100%' }}>
+                <colgroup>
+                  <col span="1" style={{ width:'30%', align: 'center', borderWidth: '1px' }} />
+                  <col span="1" style={{ width:'30%', align: 'center', borderWidth: '1px' }} />
+                  <col span="1" style={{ width:'20%', align: 'center', borderWidth: '1px' }} />
+                  <col span="1" style={{ width:'20%', align: 'center', borderWidth: '1px' }} />
+                </colgroup>
+
                 <tbody>
                   <tr>
-                    <td colSpan="2"><strong>EVENT:</strong> {eventType.distance}m {eventType.stroke} </td>
-                    <td colSpan="2"><strong>GRADE:</strong> {this.produceGradesString(raceEvent.grades)} </td>
+                    <td><strong>EVENT:</strong> {eventType.distance}m {eventType.stroke} </td>
+                    <td><strong>GRADE:</strong> {this.produceGradesString(raceEvent.grades)} </td>
                   </tr>
                   <tr>
-                    <td colSpan="1"><strong>EVENT No.:</strong>{raceSheet.eventNumber}</td>
-                    <td colSpan="1"><strong>DISTANCE:</strong> {eventType.distance}m </td>
-                    <td colSpan="1"><strong>HEAT No.:</strong>{raceSheet.heatNumber}</td>
-                    <td colSpan="1"><strong>DATE:</strong> {raceSheet.date[0]}/{raceSheet.date[1]}/{raceSheet.date[2]} </td>
+                    <td><strong>EVENT No.:</strong> {raceSheet.eventNumber}</td>
+                    <td><strong>DISTANCE:</strong> {eventType.distance}m </td>
+                    <td><strong>HEAT No.:</strong> {raceSheet.heatNumber}</td>
+                    <td><strong>DATE:</strong> {raceSheet.date[0]}/{raceSheet.date[1]}/{raceSheet.date[2]} </td>
                   </tr>
                 </tbody>					
               </table>
@@ -178,6 +186,7 @@ export class RaceSheets extends Component {
                   }) }
                 </tbody>
               </table>
+              <br/><br/><br/>
             </div>
           );
         } else {
