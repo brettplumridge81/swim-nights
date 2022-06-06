@@ -8,28 +8,31 @@ export class EnterRaces extends Component {
     // storedResults;
   
     constructor(props) {
-    super(props);
-    this.state = { 
-      eventTypes: [],
-      raceNightDates: [],
-      raceNight: undefined,
-      raceNightEvents: [],
-      raceNightEventsForSwimmer: [],
-      isEnteredForSwimmer: [],
-      e_swimmers: [],
-      d_swimmers: [],
-      c_swimmers: [],
-      b_swimmers: [],
-      a_swimmers: [],
-      old_fart_swimmers: [],
-      selectedSwimmerName: "",
-      selectedSwimmerGrade: "",
-      results: [],
-      storedResults: []
-    };
+      super(props);
+      console.log("props.loggedIn");
+      console.log(props.loggedIn);
+      this.state = { 
+        eventTypes: [],
+        raceNightDates: [],
+        raceNight: undefined,
+        raceNightEvents: [],
+        raceNightEventsForSwimmer: [],
+        isEnteredForSwimmer: [],
+        e_swimmers: [],
+        d_swimmers: [],
+        c_swimmers: [],
+        b_swimmers: [],
+        a_swimmers: [],
+        old_fart_swimmers: [],
+        selectedSwimmerName: "",
+        selectedSwimmerGrade: "",
+        results: [],
+        storedResults: [],
+        loggedIn: props.loggedIn
+      };
 
-    this.handleSwimmerSelect = this.handleSwimmerSelect.bind(this);
-  }
+      this.handleSwimmerSelect = this.handleSwimmerSelect.bind(this);
+    }
 
   componentDidMount() {
     this.populateSwimmers();
@@ -236,7 +239,26 @@ export class EnterRaces extends Component {
     });
 
     setTimeout(() => {
-      window.location.reload(false);
+      this.setState({ 
+        eventTypes: [],
+        raceNightDates: [],
+        raceNight: undefined,
+        raceNightEvents: [],
+        raceNightEventsForSwimmer: [],
+        isEnteredForSwimmer: [],
+        e_swimmers: [],
+        d_swimmers: [],
+        c_swimmers: [],
+        b_swimmers: [],
+        a_swimmers: [],
+        old_fart_swimmers: [],
+        selectedSwimmerName: "",
+        selectedSwimmerGrade: "",
+        results: [],
+        storedResults: []
+      });
+      this.componentDidMount();
+      // window.location.reload(false);
     }, 1000);
   }
 
@@ -317,16 +339,12 @@ export class EnterRaces extends Component {
         swimmerNames = swimmerSheetObjects.map(x => x[0]);
         hcapTimes = swimmerSheetObjects.map(x => x[1]);
 
-        hcapTimes.forEach(x => {
-          goAts.push(hcapTimes[0] - x);
-        });
-
-        this.populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent);
+        this.populateRaceEventHeats(swimmerNames, hcapTimes, numberOfHeats, raceEvent);
       });
     });
   }
 
-  populateRaceEventHeats(swimmerNames, hcapTimes, goAts, numberOfHeats, raceEvent) {
+  populateRaceEventHeats(swimmerNames, hcapTimes, numberOfHeats, raceEvent) {
     var numberOfSwimmers = swimmerNames.length;
     var swimmersPerHeat = Math.ceil(numberOfSwimmers / numberOfHeats);
     var swimmerCount = 1;
@@ -340,15 +358,25 @@ export class EnterRaces extends Component {
       heatHcapTimes = [];
       heatGoAts = [];
 
+      var heatHcapTime = 10000;
+      var count = swimmerCount - 1;
+      while (heatHcapTime === 10000 && swimmerCount <= numberOfSwimmers) {
+        heatHcapTime = hcapTimes[count];
+        count++;
+      }
+
+      console.log("heatHcapTime");
+      console.log(heatHcapTime);
+
       while (swimmerCount % swimmersPerHeat !== 0 && swimmerCount < swimmerNames.length) {
         heatSwimmerNames.push(swimmerNames[swimmerCount - 1]);
         heatHcapTimes.push(hcapTimes[swimmerCount - 1]);
-        heatGoAts.push(goAts[swimmerCount - 1]);
+        heatGoAts.push(hcapTimes[swimmerCount - 1] !== 10000 ? heatHcapTime - hcapTimes[swimmerCount - 1] : 0);
         swimmerCount++;
       }
       heatSwimmerNames.push(swimmerNames[swimmerCount - 1]);
       heatHcapTimes.push(hcapTimes[swimmerCount - 1]);
-      heatGoAts.push(goAts[swimmerCount - 1]);
+      heatGoAts.push(hcapTimes[swimmerCount - 1] !== 10000 ? heatHcapTime - hcapTimes[swimmerCount - 1] : 0);
       swimmerCount++;
       
 
@@ -433,13 +461,15 @@ export class EnterRaces extends Component {
                 this.state.raceNightDates.map((raceNightDate) => (
                   <div>
                     <label>
-                      <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(raceNightDate)} 
-                        checked={
+                      <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(
+                          this.state.loggedIn === "admin" ? raceNightDate : [new Date().getDate(), new Date().getMonth() + 1, new Date().getFullYear()]
+                        )} 
+                        checked = {
                           this.state.raceNight !== undefined
                            ? raceNightDate[0] === this.state.raceNight.date[0] && raceNightDate[1] === this.state.raceNight.date[1] && raceNightDate[2] === this.state.raceNight.date[2] 
                            : false
                         }/>
-                      {raceNightDate[0] + "/" + raceNightDate[1] + "/" + raceNightDate[2]}
+                      &emsp; {raceNightDate[0] + "/" + raceNightDate[1] + "/" + raceNightDate[2]}
                     </label>
                   </div>
                 ))

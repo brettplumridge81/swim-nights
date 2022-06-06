@@ -17,19 +17,15 @@ export class SwimmerResultInput extends Component {
             grossHundredths: undefined,
             netTime: [undefined, undefined, undefined],
             place: undefined,
-            points: 0,
+            points: undefined,
             loaded: true
         };
 
         axios.get('http://localhost:4000/fridaynightraces/results/')
             .then(response => {
-                console.log("response.data");
-                console.log(response.data);
                 let result = response.data
                     .filter(x => x.raceEventId === props.raceEventId)
                     .filter(x => x.swimmerName === props.swimmerName)[0];
-                console.log("result");
-                console.log(result);
                 this.setState({
                     result: result,
                     grossMinutes: result.grossTime[0],
@@ -49,7 +45,7 @@ export class SwimmerResultInput extends Component {
 
     handleChangeGrossMinutes(event) {
         console.log(event.target.value);
-        this.setState({ grossMinutes: event.target.value !== "" ? event.target.value : undefined });
+        this.setState({ grossMinutes: event.target.value !== "" ? event.target.value : "" });
     }
 
     handleChangeGrossSeconds(event) {
@@ -62,7 +58,7 @@ export class SwimmerResultInput extends Component {
         }, () => {
             this.setState({
                 netTime: [
-                    this.state.grossMinutes !== undefined ? this.state.grossMinutes - Math.floor(this.state.result.goAt / 60) : 0,
+                    this.state.grossMinutes !== undefined && this.state.grossMinutes !== null ? this.state.grossMinutes - Math.floor(this.state.result.goAt / 60) : undefined,
                     this.state.grossSeconds - this.state.result.goAt % 60,
                     this.state.grossHundredths
                 ]
@@ -120,20 +116,12 @@ export class SwimmerResultInput extends Component {
                 }
 
                 var bestTime = swimmer.bestTimes[index];
-                // console.log("bestTime");
-                // console.log(bestTime);
                 var netTimeHundredths = result.netTime[0] * 6000 + result.netTime[1] * 100 + result.netTime[2];
-                // console.log("netTimeHundredths");
-                // console.log(netTimeHundredths);
                 var bestTimeHundredths = bestTime !== undefined ? bestTime[0] * 6000 + bestTime[1] * 100 + bestTime[2] : 0;
-                // console.log("bestTimeHundredths");
-                // console.log(bestTimeHundredths);
 
                 if (netTimeHundredths > bestTimeHundredths) {
                     swimmer.bestTimes[index] = result.netTime;
                 }
-
-                // console.log(swimmer);
 
                 axios.get('http://localhost:4000/fridaynightraces/results/')
                 .then(response => {
@@ -222,19 +210,19 @@ export class SwimmerResultInput extends Component {
                             <tbody>
                                 <tr>
                                     <td class="record_gross_time">
-                                        <input type="number" value={this.state.grossMinutes !== undefined ? this.state.grossMinutes : "" } 
+                                        <input type="number" value={this.state.grossMinutes !== undefined ? this.state.grossMinutes : undefined } 
                                             onChange={this.handleChangeGrossMinutes}>
                                         </input>
                                     </td>
                                     <td>:</td>
                                     <td class="record_gross_time">
-                                        <input type="number" value={this.state.grossSeconds !== undefined ? this.state.grossSeconds : ""} 
+                                        <input type="number" value={this.state.grossSeconds !== undefined ? this.state.grossSeconds : undefined} 
                                             onChange={this.handleChangeGrossSeconds}>
                                         </input>
                                     </td>
                                     <td>.</td>
                                     <td class="record_gross_time">
-                                        <input type="number" value={this.state.grossHundredths !== undefined ? this.state.grossHundredths : ""} 
+                                        <input type="number" value={this.state.grossHundredths !== undefined ? this.state.grossHundredths : undefined} 
                                             onChange={this.handleChangeGrossHundredths}>
                                         </input>
                                     </td>
@@ -252,7 +240,7 @@ export class SwimmerResultInput extends Component {
                         </div>
                     </td>
                     <td style={{ textAlign: 'center', borderWidth: '1px' }}>
-                        {this.state.points > 1 ? <div>&#10004;</div> : (this.state.points === 1 ? "DQ" : (this.state.points === 0 ? "DNS" : ""))}
+                        {this.state.points !== undefined && (this.state.points > 1 ? <div>&#10004;</div> : (this.state.points === 1 ? "DQ" : (this.state.points === 0 ? "DNS" : "")))}
                     </td>
                     <td style={{ textAlign: 'center', borderWidth: '1px' }}>
                         <button onClick={() => this.recordSwimmerResult()}>

@@ -96,7 +96,7 @@ export class RaceNightsList extends Component {
               <div>
                 <label>
                   <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(raceNight)} />
-                  {raceNight.date[0] + "/" + raceNight.date[1] + "/" + raceNight.date[2]}
+                  &emsp; {raceNight.date[0] + "/" + raceNight.date[1] + "/" + raceNight.date[2]}
                 </label>
               </div>
             ))

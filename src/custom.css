@@ -48,3 +48,9 @@ tr {
   left:100px;
   display:none;
 }
+
+@media print {
+  .noPrint {
+      display:none;
+  }
+}
