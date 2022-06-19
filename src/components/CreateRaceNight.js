@@ -15,7 +15,9 @@ export class CreateRaceNight extends Component {
       raceEvents: [],
       date: [0, 0, 0],
       selectedEventType: undefined,
-      grades: []
+      grades: [],
+      raceNights: [],
+      selectedRaceNightDate: []
     };
 
     this.handleChangeDateDay = this.handleChangeDateDay.bind(this);
@@ -26,6 +28,7 @@ export class CreateRaceNight extends Component {
 
   componentDidMount() {
     this.populateEventTypesData();
+    this.getRaceNights();
   }
 
   async populateEventTypesData() {
@@ -37,6 +40,18 @@ export class CreateRaceNight extends Component {
           butterflyEventTypes: response.data.filter(x => x.stroke === "Butterfly"),
           freestyleEventTypes: response.data.filter(x => x.stroke === "Freestyle"),
           otherEventTypes: response.data.filter(x => x.stroke !== "Backstroke" && x.stroke !== "Breaststroke" && x.stroke !== "Butterfly" && x.stroke !== "Freestyle")
+        });
+      })
+      .catch(function (error) {
+        console.log(error);
+      })
+  }
+
+  async getRaceNights() {
+    await axios.get('http://localhost:4000/fridaynightraces/racenights/')
+      .then(response => {
+        this.setState({ 
+          raceNights: response.data
         });
       })
       .catch(function (error) {
@@ -103,7 +118,7 @@ export class CreateRaceNight extends Component {
       swimmerNames: [],
       grades: this.state.grades,
       resultIds: [],
-      date: this.state.date,
+      date: [],
       eventNumber: this.state.raceEvents.length === 0 ? 1 : [...this.state.raceEvents].pop().eventNumber + 1
     }
 
@@ -127,11 +142,12 @@ export class CreateRaceNight extends Component {
     }
 
     this.state.raceEvents.forEach(raceEvent => {
+      raceEvent.date = this.state.date;
       axios.post('http://localhost:4000/fridaynightraces/raceevents/add_raceEvent', raceEvent)
       .catch(function (error) {
         console.log(error);
       });
-    })
+    });
 
     axios.post('http://localhost:4000/fridaynightraces/racenights/add_raceNight', newRaceNight)
     .catch(function (error) {
@@ -192,18 +208,61 @@ export class CreateRaceNight extends Component {
     this.setState({ raceEvents: sortedRaceEvents });
   }
 
+  handleRaceNightSelect(raceNight) {
+    this.setState({
+      selectedRaceNightDate: raceNight.date
+    });
+
+    this.setState({raceEvents: []});
+
+    axios.get('http://localhost:4000/fridaynightraces/raceEvents/')
+    .then(response => {
+      var loadedRaceEvents = response.data.filter(x => raceNight.raceEventIds.includes(x.raceEventId)).sort((a, b) => (a.eventNumber > b.eventNumber) ? 1 : -1);
+      var newRaceEvents = [];
+
+      loadedRaceEvents.forEach(loadedRaceEvent => {
+        const newRaceEvent = {
+          raceEventId: uuidv4(),
+          eventTypeId: loadedRaceEvent.eventTypeId,
+          stroke: loadedRaceEvent.stroke,
+          distance: loadedRaceEvent.distance,
+          swimmerNames: [],
+          grades: loadedRaceEvent.grades,
+          resultIds: [],
+          date: [],
+          eventNumber: loadedRaceEvent.eventNumber
+        }
+    
+        newRaceEvents = newRaceEvents.concat(newRaceEvent);
+        newRaceEvents.sort((a, b) => (a.eventNumber > b.eventNumber) ? 1 : -1);
+        this.setState({raceEvents: newRaceEvents});
+      });
+    });
+  }
+
   render() {
     return (
       <div>
         <div>
           <h3>Create Race Nights</h3>
-          <br/>
+          <hr/>
+          <h4>Previous Race Nights</h4>
           <div>
-            <label>Date:&emsp;</label>
-            <input type="number" onChange={this.handleChangeDateDay} style={{ width: '50px', textAlign: 'center' }} />
-            <input type="number" onChange={this.handleChangeDateMonth} style={{ width: '50px', textAlign: 'center' }} />
-            <input type="number" onChange={this.handleChangeDateYear} style={{ width: '50px', textAlign: 'center' }} />
+            {
+              this.state.raceNights
+                .sort((a, b) => a.date[2] > b.date[2] ? 1 : -1 && a.date[1] > b.date[1] ? 1 : -1 && a.date[0] > b.date[0] ? 1 : -1)
+                .map((raceNight) => (
+                  <label>
+                    <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(raceNight)}
+                      checked = { this.state.selectedRaceNightDate !== undefined && raceNight.date !== undefined
+                        ? this.state.selectedRaceNightDate[0] === raceNight.date[0] && this.state.selectedRaceNightDate[1] === raceNight.date[1] && this.state.selectedRaceNightDate[2] === raceNight.date[2] 
+                        : false } />
+                    {"  "} {raceNight.date[0] + "/" + raceNight.date[1] + "/" + raceNight.date[2]} &emsp; &emsp;
+                  </label>
+                ))
+            }
           </div>
+          <hr/>
           <br/>
           <div>
             <table style={{width: '100%'}}>
@@ -294,7 +353,7 @@ export class CreateRaceNight extends Component {
             <button onClick={ () => this.addRaceEvent() }>Add Race Event</button>
           </div>
         </div>
-
+        <br/>
         <div>
           <h2>Event Types</h2>
           <table className="table table-striped" style={{ marginTop: 20 }}>
@@ -340,6 +399,11 @@ export class CreateRaceNight extends Component {
         </div>
 
         <div>
+            <label>Date:&emsp;</label>
+            <input type="number" onChange={this.handleChangeDateDay} style={{ width: '50px', textAlign: 'center' }} />
+            <input type="number" onChange={this.handleChangeDateMonth} style={{ width: '50px', textAlign: 'center' }} />
+            <input type="number" onChange={this.handleChangeDateYear} style={{ width: '50px', textAlign: 'center' }} />
+            &emsp; &emsp;
           <button onClick={ () => this.addRaceNight() }>Add Race Night</button>
         </div>
       </div>

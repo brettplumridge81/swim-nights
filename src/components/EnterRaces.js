@@ -3,36 +3,32 @@ import axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
 
 export class EnterRaces extends Component {
-    static displayName = EnterRaces.name;
+  static displayName = EnterRaces.name;
 
-    // storedResults;
-  
-    constructor(props) {
-      super(props);
-      console.log("props.loggedIn");
-      console.log(props.loggedIn);
-      this.state = { 
-        eventTypes: [],
-        raceNightDates: [],
-        raceNight: undefined,
-        raceNightEvents: [],
-        raceNightEventsForSwimmer: [],
-        isEnteredForSwimmer: [],
-        e_swimmers: [],
-        d_swimmers: [],
-        c_swimmers: [],
-        b_swimmers: [],
-        a_swimmers: [],
-        old_fart_swimmers: [],
-        selectedSwimmerName: "",
-        selectedSwimmerGrade: "",
-        results: [],
-        storedResults: [],
-        loggedIn: props.loggedIn
-      };
+  constructor(props) {
+    super(props);
+    this.state = { 
+      eventTypes: [],
+      raceNightDates: [],
+      raceNight: undefined,
+      raceNightEvents: [],
+      raceNightEventsForSwimmer: [],
+      isEnteredForSwimmer: [],
+      e_swimmers: [],
+      d_swimmers: [],
+      c_swimmers: [],
+      b_swimmers: [],
+      a_swimmers: [],
+      old_fart_swimmers: [],
+      selectedSwimmerName: "",
+      selectedSwimmerGrade: "",
+      results: [],
+      storedResults: [],
+      loggedIn: props.loggedIn
+    };
 
-      this.handleSwimmerSelect = this.handleSwimmerSelect.bind(this);
-    }
+    this.handleSwimmerSelect = this.handleSwimmerSelect.bind(this);
+  }
 
   componentDidMount() {
     this.populateSwimmers();
@@ -365,9 +361,6 @@ export class EnterRaces extends Component {
         count++;
       }
 
-      console.log("heatHcapTime");
-      console.log(heatHcapTime);
-
       while (swimmerCount % swimmersPerHeat !== 0 && swimmerCount < swimmerNames.length) {
         heatSwimmerNames.push(swimmerNames[swimmerCount - 1]);
         heatHcapTimes.push(hcapTimes[swimmerCount - 1]);
@@ -458,21 +451,21 @@ export class EnterRaces extends Component {
             <h3>Race Night Dates</h3>
             <div>
               {
-                this.state.raceNightDates.map((raceNightDate) => (
-                  <div>
+                this.state.raceNightDates
+                  .sort((a, b) => a[2] > b[2] ? 1 : -1  && a[1] > b[1] ? 1 : -1 && a[0] > b[0] ? 1 : -1)
+                  .map((raceNightDate) => (
                     <label>
                       <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(
                           this.state.loggedIn === "admin" ? raceNightDate : [new Date().getDate(), new Date().getMonth() + 1, new Date().getFullYear()]
                         )} 
                         checked = {
                           this.state.raceNight !== undefined
-                           ? raceNightDate[0] === this.state.raceNight.date[0] && raceNightDate[1] === this.state.raceNight.date[1] && raceNightDate[2] === this.state.raceNight.date[2] 
-                           : false
+                            ? raceNightDate[0] === this.state.raceNight.date[0] && raceNightDate[1] === this.state.raceNight.date[1] && raceNightDate[2] === this.state.raceNight.date[2] 
+                            : false
                         }/>
-                      &emsp; {raceNightDate[0] + "/" + raceNightDate[1] + "/" + raceNightDate[2]}
+                      {"  "} {raceNightDate[0] + "/" + raceNightDate[1] + "/" + raceNightDate[2]} &emsp; &emsp;
                     </label>
-                  </div>
-                ))
+                  ))
               }
             </div>
           </div>

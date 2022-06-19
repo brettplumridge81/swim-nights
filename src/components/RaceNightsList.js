@@ -41,7 +41,7 @@ export class RaceNightsList extends Component {
     super(props);
     this.state = { 
       raceNights: [],
-      selectedRaceNightDate: [],
+      selectedRaceNightDate: [new Date().getDate(), new Date().getMonth() + 1, new Date().getFullYear()],
       selectedRaceNight: [],
       selectedRaceNightRaceEvents: [],
       selectedRaceNightEventTypes: [],
@@ -75,7 +75,7 @@ export class RaceNightsList extends Component {
   handleRaceNightSelect(raceNight) {
     this.setState({
       selectedRaceNightDate: raceNight.date
-    })
+    });
 
     axios.get('http://localhost:4000/fridaynightraces/raceEvents/')
     .then(response => {
@@ -92,14 +92,17 @@ export class RaceNightsList extends Component {
         <h3>Race Night Dates</h3>
         <div>
           {
-            this.state.raceNights.map((raceNight, i) => (
-              <div>
+            this.state.raceNights
+              .sort((a, b) => a.date[2] > b.date[2] ? 1 : -1 && a.date[1] > b.date[1] ? 1 : -1 && a.date[0] > b.date[0] ? 1 : -1)
+              .map((raceNight) => (
                 <label>
-                  <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(raceNight)} />
-                  &emsp; {raceNight.date[0] + "/" + raceNight.date[1] + "/" + raceNight.date[2]}
+                  <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(raceNight)}
+                    checked = { this.state.selectedRaceNightDate !== undefined && raceNight.date !== undefined
+                      ? this.state.selectedRaceNightDate[0] === raceNight.date[0] && this.state.selectedRaceNightDate[1] === raceNight.date[1] && this.state.selectedRaceNightDate[2] === raceNight.date[2] 
+                      : false } />
+                  {"  "} {raceNight.date[0] + "/" + raceNight.date[1] + "/" + raceNight.date[2]} &emsp; &emsp;
                 </label>
-              </div>
-            ))
+              ))
           }
         </div>
         <div>

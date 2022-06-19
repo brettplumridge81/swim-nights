@@ -113,15 +113,15 @@ export class RaceNightResultsInput extends Component {
       <div>
         <div>
           {
-            this.state.raceNightDates.map((raceNightDate) => (
-              <div>
+            this.state.raceNightDates
+              .sort((a, b) => a[2] > b[2] ? 1 : -1 && a[1] > b[1] ? 1 : -1 && a[0] > b[0] ? 1 : -1)
+              .map((raceNightDate) => (
                 <label>
                   <input type="radio" name="race_night_select" onChange={() => this.handleRaceNightSelect(raceNightDate)} 
-                    checked = { this.state.selectedRaceNightDate === raceNightDate } />
-                  &emsp; {raceNightDate[0] + "/" + raceNightDate[1] + "/" + raceNightDate[2]}
+                    checked = { this.state.selectedRaceNightDate[0] === raceNightDate[0] && this.state.selectedRaceNightDate[1] === raceNightDate[1] && this.state.selectedRaceNightDate[2] === raceNightDate[2] } />
+                  {"  "} {raceNightDate[0] + "/" + raceNightDate[1] + "/" + raceNightDate[2]} &emsp; &emsp;
                 </label>
-              </div>
-            ))
+              ))
           }
         </div>
         <div>
