@@ -10,6 +10,9 @@ let EventType = new Schema({
     },
     distance: {
         type: Number
+    },
+    raceNightType: {
+        type: String
     }
 });
 

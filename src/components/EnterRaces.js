@@ -309,7 +309,6 @@ export class EnterRaces extends Component {
     var numberOfHeats;
     var swimmerNames = [];
     var hcapTimes = [];
-    var goAts = [];
 
     raceEvents.forEach(raceEvent => {
       var swimmers = [];

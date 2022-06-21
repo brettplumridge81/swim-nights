@@ -17,7 +17,8 @@ export class CreateRaceNight extends Component {
       selectedEventType: undefined,
       grades: [],
       raceNights: [],
-      selectedRaceNightDate: []
+      selectedRaceNightDate: [],
+      raceNightType: undefined
     };
 
     this.handleChangeDateDay = this.handleChangeDateDay.bind(this);
@@ -35,11 +36,11 @@ export class CreateRaceNight extends Component {
     await axios.get('http://localhost:4000/fridaynightraces/eventtypes/')
       .then(response => {
         this.setState({ 
-          backstrokeEventTypes: response.data.filter(x => x.stroke === "Backstroke"),
-          breaststrokeEventTypes: response.data.filter(x => x.stroke === "Breaststroke"),
-          butterflyEventTypes: response.data.filter(x => x.stroke === "Butterfly"),
-          freestyleEventTypes: response.data.filter(x => x.stroke === "Freestyle"),
-          otherEventTypes: response.data.filter(x => x.stroke !== "Backstroke" && x.stroke !== "Breaststroke" && x.stroke !== "Butterfly" && x.stroke !== "Freestyle")
+          backstrokeEventTypes: response.data.filter(x => x.raceNightType === this.state.raceNightType).filter(x => x.stroke === "Backstroke"),
+          breaststrokeEventTypes: response.data.filter(x => x.raceNightType === this.state.raceNightType).filter(x => x.stroke === "Breaststroke"),
+          butterflyEventTypes: response.data.filter(x => x.raceNightType === this.state.raceNightType).filter(x => x.stroke === "Butterfly"),
+          freestyleEventTypes: response.data.filter(x => x.raceNightType === this.state.raceNightType).filter(x => x.stroke === "Freestyle"),
+          otherEventTypes: response.data.filter(x => x.raceNightType === this.state.raceNightType).filter(x => x.stroke !== "Backstroke" && x.stroke !== "Breaststroke" && x.stroke !== "Butterfly" && x.stroke !== "Freestyle")
         });
       })
       .catch(function (error) {
@@ -240,16 +241,25 @@ export class CreateRaceNight extends Component {
     });
   }
 
+  handleSelectRaceNightType(raceNightType) {
+    this.setState({ raceNightType: raceNightType });
+  }
+
   render() {
     return (
       <div>
         <div>
           <h3>Create Race Nights</h3>
+          <label>
+            <input type="radio" name="race_night_type_select" onChange={() => this.handleSelectRaceNightType("pointscore")}>Pointscore</input>
+            <input type="radio" name="race_night_type_select" onChange={() => this.handleSelectRaceNightType("championship")}>Championship</input>
+          </label>
           <hr/>
           <h4>Previous Race Nights</h4>
           <div>
             {
               this.state.raceNights
+                .filter(x => x.raceNightType === this.state.raceNightType)
                 .sort((a, b) => a.date[2] > b.date[2] ? 1 : -1 && a.date[1] > b.date[1] ? 1 : -1 && a.date[0] > b.date[0] ? 1 : -1)
                 .map((raceNight) => (
                   <label>

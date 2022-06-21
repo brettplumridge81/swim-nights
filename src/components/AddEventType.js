@@ -9,7 +9,8 @@ export class AddEventType extends Component {
         this.state = {
             eventTypeId: uuidv4(),
             stroke: "",
-            distance: 0
+            distance: 0,
+            raceNightType: undefined
         };
 
         this.handleChangeStroke = this.handleChangeStroke.bind(this);
@@ -25,10 +26,14 @@ export class AddEventType extends Component {
         this.setState({ distance: event.target.value });
     }
 
+    handleSelectRaceNightType(raceNightType) {
+        this.setState({ raceNightType: raceNightType });
+    }
+
     handleSubmit(event) {
         event.preventDefault();
 
-        if (this.state.stroke === "" || this.state.distance === 0) {
+        if (this.state.stroke === "" || this.state.distance === 0 || this.state.raceNightType === undefined) {
             return;
         }
 
@@ -47,6 +52,10 @@ export class AddEventType extends Component {
     render() {
         return (
             <form onSubmit={this.handleSubmit} >
+                <label>
+                    <input type="radio" name="race_night_type_select" onChange={() => this.handleSelectRaceNightType("pointscore")}>Pointscore</input>
+                    <input type="radio" name="race_night_type_select" onChange={() => this.handleSelectRaceNightType("championship")}>Championship</input>
+                </label>
                 <label>Stroke: &nbsp;</label>
                 <select defaultValue={'DEFAULT'} onChange={this.handleChangeStroke}>
                     <option value="DEFAULT" disabled hidden> Select Stroke...</option>
