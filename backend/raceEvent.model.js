@@ -28,6 +28,9 @@ let RaceEvent = new Schema({
     },
     eventNumber: {
         type: Number
+    },
+    raceNightType: {
+        type: String
     }
 });
 

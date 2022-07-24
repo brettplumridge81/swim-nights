@@ -380,8 +380,8 @@ export class EnterRaces extends Component {
         eventNumber: raceEvent.eventNumber,
         heatNumber: heatCount + 1,
         swimmerNames: heatSwimmerNames,
-        hcapTimes: heatHcapTimes,
-        goAts: heatGoAts
+        hcapTimes: raceEvent.raceNightType === "pointscore" ? heatHcapTimes : [],
+        goAts: raceEvent.raceNightType === "pointscore" ? heatGoAts : []
       }
 
       axios.post('http://localhost:4000/fridaynightraces/racesheets/add_racesheet', newRaceSheet)

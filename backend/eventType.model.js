@@ -13,6 +13,12 @@ let EventType = new Schema({
     },
     raceNightType: {
         type: String
+    },
+    recordSwimmerName: {
+        type: String
+    },
+    recordTime: {
+        type: [Number]
     }
 });
 

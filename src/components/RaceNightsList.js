@@ -5,7 +5,9 @@ import { AddRaceNight } from './AddRaceNight';
 const RaceEvent = props => (
   <tr>
     <td>{props.raceEvent.eventNumber}</td>
-    <td>{produceGradesString(props.raceEvent.grades)}</td>
+    <td>{
+      props.raceEvent.raceNightType === "pointscore" ? produceGradesString(props.raceEvent.grades) : produceAgesString(props.raceEvent.grades)
+    }</td>
     <td>{props.raceEvent.distance}</td>
     <td>{props.raceEvent.stroke}</td>
     {/* <td>
@@ -31,6 +33,24 @@ const produceGradesString = (grades) => {
       } else {
           string = string + "-grade";
       }
+  }
+  return string;
+}
+
+const produceAgesString = (ages) => {
+  if (ages.length === 0) {
+    return "";
+  }
+
+  var string = "";
+  string = string + ages[0];
+  for (var i = 1; i < ages.length - 1; i++) {
+    string = string + ", " + ages[i];
+  }
+  if (ages.length > 1) {
+    string = string + " & " + ages[ages.length - 1] + " years";
+  } else {
+    string = string + " years";
   }
   return string;
 }

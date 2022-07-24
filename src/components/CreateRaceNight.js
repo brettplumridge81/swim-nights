@@ -28,7 +28,6 @@ export class CreateRaceNight extends Component {
   }
 
   componentDidMount() {
-    this.populateEventTypesData();
     this.getRaceNights();
   }
 
@@ -94,6 +93,11 @@ export class CreateRaceNight extends Component {
     } else {
         grades = grades.filter(x => x !== event.target.id);
     }
+    if (this.state.raceNightType === "pointscore") {
+      grades.sort((a, b) => (a > b) ? -1 : 1);
+    } else {
+      grades.sort((a, b) => (parseInt(a) > parseInt(b)) ? 1 : -1);
+    }
     this.setState({ grades: grades });
   }
 
@@ -102,6 +106,10 @@ export class CreateRaceNight extends Component {
   }
 
   addRaceEvent() {
+    if (this.state.selectedEventType === undefined || this.state.grades.length === 0) {
+      return;
+    }
+
     const existingRaceEvents = this.state.raceEvents
       .filter(x => x.distance === this.state.selectedEventType.distance)
       .filter(x => x.stroke === this.state.selectedEventType.stroke)
@@ -120,7 +128,8 @@ export class CreateRaceNight extends Component {
       grades: this.state.grades,
       resultIds: [],
       date: [],
-      eventNumber: this.state.raceEvents.length === 0 ? 1 : [...this.state.raceEvents].pop().eventNumber + 1
+      eventNumber: this.state.raceEvents.length === 0 ? 1 : [...this.state.raceEvents].pop().eventNumber + 1,
+      raceNightType: this.state.raceNightType
     }
 
     var raceEvents = this.state.raceEvents.concat(newRaceEvent);
@@ -139,7 +148,8 @@ export class CreateRaceNight extends Component {
 
     const newRaceNight = {
       date: this.state.date,
-      raceEventIds: this.state.raceEvents.map(x => x.raceEventId)
+      raceEventIds: this.state.raceEvents.map(x => x.raceEventId),
+      raceNightType: this.state.raceNightType
     }
 
     this.state.raceEvents.forEach(raceEvent => {
@@ -174,14 +184,36 @@ export class CreateRaceNight extends Component {
         string = string + ", " + grades[i];
     }
     if (grades.length > 1) {
+      if (grades[grades.length - 1] === "15-years") {
+        string = string + " & " + grades[grades.length - 1] + " & over";
+      } else {
         string = string + " & " + grades[grades.length - 1] + " grades";
+      } 
     } else {
-        if (grades[grades.length - 1] === "15-years") {
-            string = string + " & over";
-        } else {
-            string = string + "-grade";
-        }
+      if (grades[grades.length - 1] === "15-years") {
+          string = string + " & over";
+      } else {
+          string = string + "-grade";
+      }
     } 
+    return string;
+  }
+
+  produceAgesString = (ages) => {
+    if (ages.length === 0) {
+      return "";
+    }
+
+    var string = "";
+    string = string + ages[0];
+    for (var i = 1; i < ages.length - 1; i++) {
+      string = string + ", " + ages[i];
+    }
+    if (ages.length > 1) {
+      string = string + " & " + ages[ages.length - 1] + " years";
+    } else {
+      string = string + " years";
+    }
     return string;
   }
 
@@ -241,8 +273,14 @@ export class CreateRaceNight extends Component {
     });
   }
 
-  handleSelectRaceNightType(raceNightType) {
-    this.setState({ raceNightType: raceNightType });
+  handleChangeRaceNightType(raceNightType) {
+    this.setState({ 
+      raceNightType: raceNightType,
+      raceEvents: [],
+      selectedRaceNightDate: [],
+      grades: []
+    });
+    this.populateEventTypesData();
   }
 
   render() {
@@ -250,10 +288,13 @@ export class CreateRaceNight extends Component {
       <div>
         <div>
           <h3>Create Race Nights</h3>
-          <label>
-            <input type="radio" name="race_night_type_select" onChange={() => this.handleSelectRaceNightType("pointscore")}>Pointscore</input>
-            <input type="radio" name="race_night_type_select" onChange={() => this.handleSelectRaceNightType("championship")}>Championship</input>
-          </label>
+          <hr/>
+          <div>
+              <label>
+                  <input type="radio" name="race_night_type_select" onChange={ () => this.handleChangeRaceNightType("pointscore") } /> {"  "} Pointscore &emsp; &emsp;
+                  <input type="radio" name="race_night_type_select" onChange={ () => this.handleChangeRaceNightType("championship") } /> {"  "} Championship
+              </label>
+          </div>
           <hr/>
           <h4>Previous Race Nights</h4>
           <div>
@@ -344,20 +385,49 @@ export class CreateRaceNight extends Component {
             
           </div>
           <br/>
-          <div>
-            <input type="checkbox" id="E" name="E" onClick={this.handleChangeGradesList}/>
-            <label>&nbsp; E-Grade &emsp;</label>
-            <input type="checkbox" id="D" name="D" onClick={this.handleChangeGradesList}/>
-            <label>&nbsp; D-Grade &emsp;</label>
-            <input type="checkbox" id="C" name="C" onClick={this.handleChangeGradesList}/>
-            <label>&nbsp; C-Grade &emsp;</label>
-            <input type="checkbox" id="B" name="B" onClick={this.handleChangeGradesList}/>
-            <label>&nbsp; B-Grade &emsp;</label>
-            <input type="checkbox" id="A" name="A" onClick={this.handleChangeGradesList}/>
-            <label>&nbsp; A-Grade &emsp;</label>
-            <input type="checkbox" id="15-years" name="15-years" onClick={this.handleChangeGradesList}/>
-            <label>&nbsp; 15-Years &emsp;</label>
-          </div>
+          { this.state.raceNightType === "pointscore" ? 
+            <div>
+              <input type="checkbox" id="E" name="E" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("E")}/>
+              <label>&nbsp; E-Grade &emsp; &emsp;</label>
+              <input type="checkbox" id="D" name="D" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("D")}/>
+              <label>&nbsp; D-Grade &emsp; &emsp;</label>
+              <input type="checkbox" id="C" name="C" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("C")}/>
+              <label>&nbsp; C-Grade &emsp; &emsp;</label>
+              <input type="checkbox" id="B" name="B" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("B")}/>
+              <label>&nbsp; B-Grade &emsp; &emsp;</label>
+              <input type="checkbox" id="A" name="A" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("A")}/>
+              <label>&nbsp; A-Grade &emsp; &emsp;</label>
+              <input type="checkbox" id="15-years" name="15-years" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("15-years")}/>
+              <label>&nbsp; 15-Years &emsp; &emsp;</label>
+            </div> : this.state.raceNightType === "championship" ?
+            <div>
+              <input type="checkbox" id="6" name="6" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("6")}/>
+              <label>&nbsp; 6 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="7" name="7" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("7")}/>
+              <label>&nbsp; 7 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="8" name="8" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("8")}/>
+              <label>&nbsp; 8 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="9" name="9" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("9")}/>
+              <label>&nbsp; 9 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="10" name="10" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("10")}/>
+              <label>&nbsp; 10 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="11" name="11" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("11")}/>
+              <label>&nbsp; 11 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="12" name="12" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("12")}/>
+              <label>&nbsp; 12 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="13" name="13" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("13")}/>
+              <label>&nbsp; 13 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="14" name="14" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("14")}/>
+              <label>&nbsp; 14 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="15-19" name="15-19" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("15-19")}/>
+              <label>&nbsp; 15-19 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="20-29" name="20-29" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("20-29")}/>
+              <label>&nbsp; 20-29 Year Old &emsp; &emsp;</label>
+              <input type="checkbox" id="30+" name="30+" onChange={this.handleChangeGradesList} checked={this.state.grades.includes("30+")}/>
+              <label>&nbsp; 30+ Year Old &emsp; &emsp;</label>
+            </div> :
+            <div></div>
+          }
           <br/>
           <div>
             <button onClick={ () => this.addRaceEvent() }>Add Race Event</button>
@@ -370,7 +440,7 @@ export class CreateRaceNight extends Component {
             <thead>
               <tr>
                 <th>Event Number</th>
-                <th>Grades</th>
+                <th>{this.state.raceNightType === "pointscore" ? "Grades" : "Ages"}</th>
                 <th>Distance</th>
                 <th>Stroke</th>
                 <th></th>
@@ -381,7 +451,7 @@ export class CreateRaceNight extends Component {
               { this.state.raceEvents.map(currentRaceEvent => (
                 <tr>
                   <td>{currentRaceEvent.eventNumber}</td>
-                  <td>{this.produceGradesString(currentRaceEvent.grades)}</td>
+                  {this.state.raceNightType === "pointscore" ? <td>{this.produceGradesString(currentRaceEvent.grades)}</td> : <td>{this.produceAgesString(currentRaceEvent.grades)}</td>}
                   <td>{currentRaceEvent.distance}</td>
                   <td>{currentRaceEvent.stroke}</td>
                   <td>
